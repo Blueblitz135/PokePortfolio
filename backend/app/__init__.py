@@ -1,0 +1,1 @@
+"""Pokemon Portfolio backend application."""
