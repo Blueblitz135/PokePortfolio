@@ -30,6 +30,12 @@ The API runs at <http://localhost:8000>. Verify it with:
 Invoke-RestMethod http://localhost:8000/api/health
 ```
 
+Create the database tables after configuring `backend/.env`:
+
+```powershell
+python -m app.db.create_tables
+```
+
 To use PostgreSQL, set `DATABASE_URL` in `backend/.env`, for example:
 
 ```dotenv
