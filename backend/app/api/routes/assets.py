@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.assets import AssetCreateRequest, AssetResponse, AssetUpdateRequest
+from app.schemas.purchase_lots import PurchaseLotCreateRequest, PurchaseLotResponse
 from app.services import assets as asset_service
+from app.services import purchase_lots as purchase_lot_service
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
@@ -54,3 +56,17 @@ def delete_asset(asset_id: int, db: DatabaseSession) -> Response:
     except asset_service.AssetNotFoundError:
         raise _not_found(asset_id) from None
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/{asset_id}/purchase-lots",
+    response_model=PurchaseLotResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_purchase_lot(
+    asset_id: int, data: PurchaseLotCreateRequest, db: DatabaseSession
+) -> PurchaseLotResponse:
+    try:
+        return purchase_lot_service.create_purchase_lot(db, asset_id, data)
+    except asset_service.AssetNotFoundError:
+        raise _not_found(asset_id) from None

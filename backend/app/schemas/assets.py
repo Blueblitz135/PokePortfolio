@@ -11,6 +11,8 @@ from app.schemas.domain import (
     RawCardDetailsBase,
     SealedProductMetadataBase,
 )
+from app.schemas.calculations import AssetCalculationSummary
+from app.schemas.purchase_lots import PurchaseLotResponse
 
 
 class CardMetadataPayload(CardMetadataBase):
@@ -95,6 +97,8 @@ class AssetResponse(AssetBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    purchase_lots: list[PurchaseLotResponse] = Field(default_factory=list)
+    summary: AssetCalculationSummary
     card_metadata: CardMetadataResponse | None = None
     raw_details: RawCardDetailsResponse | None = Field(
         default=None, validation_alias="raw_card_details"

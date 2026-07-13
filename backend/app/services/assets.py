@@ -9,6 +9,7 @@ from app.models import (
     SealedProductMetadata,
 )
 from app.schemas.assets import AssetCreateRequest, AssetUpdateRequest
+from app.services.calculations import calculate_asset_summary
 
 
 class AssetNotFoundError(Exception):
@@ -21,7 +22,14 @@ def _asset_query():
         selectinload(Asset.raw_card_details),
         selectinload(Asset.graded_card_details),
         selectinload(Asset.sealed_product_metadata),
+        selectinload(Asset.purchase_lots),
+        selectinload(Asset.price_snapshots),
     )
+
+
+def _with_summary(asset: Asset) -> Asset:
+    asset.summary = calculate_asset_summary(asset)
+    return asset
 
 
 def create_asset(db: Session, data: AssetCreateRequest) -> Asset:
@@ -51,14 +59,14 @@ def create_asset(db: Session, data: AssetCreateRequest) -> Asset:
 
 def list_assets(db: Session) -> list[Asset]:
     result = db.scalars(_asset_query().order_by(Asset.id))
-    return list(result.all())
+    return [_with_summary(asset) for asset in result.all()]
 
 
 def get_asset(db: Session, asset_id: int) -> Asset:
     asset = db.scalar(_asset_query().where(Asset.id == asset_id))
     if asset is None:
         raise AssetNotFoundError
-    return asset
+    return _with_summary(asset)
 
 
 def update_asset(db: Session, asset_id: int, data: AssetUpdateRequest) -> Asset:
