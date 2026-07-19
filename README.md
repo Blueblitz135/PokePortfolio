@@ -1,4 +1,4 @@
-# Pokemon Portfolio
+# PokePortfolio
 
 Initial full-stack scaffold for a Pokemon portfolio investment app.
 
