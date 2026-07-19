@@ -1,4 +1,5 @@
 from app.schemas.assets import AssetCreateRequest, AssetResponse, AssetUpdateRequest
+from app.schemas.asset_images import AssetImageResponse
 from app.schemas.calculations import AssetCalculationSummary
 from app.schemas.domain import (
     AssetCreate,
@@ -29,6 +30,7 @@ __all__ = [
     "AssetCreateRequest",
     "AssetImageCreate",
     "AssetImageRead",
+    "AssetImageResponse",
     "AssetRead",
     "AssetResponse",
     "AssetUpdateRequest",

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-labelledby="title description">
+  <title id="title">Asset image placeholder</title>
+  <desc id="description">A generic placeholder for an asset without an uploaded image.</desc>
+  <rect width="480" height="640" rx="24" fill="#eef2f7"/>
+  <rect x="80" y="100" width="320" height="360" rx="18" fill="#d7dee8"/>
+  <circle cx="180" cy="210" r="46" fill="#a8b4c4"/>
+  <path d="M112 410l92-108 64 68 48-48 52 88H112z" fill="#a8b4c4"/>
+  <text x="240" y="530" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#526173">Image unavailable</text>
+</svg>

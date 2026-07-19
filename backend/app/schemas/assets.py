@@ -3,6 +3,8 @@ from datetime import datetime
 from pydantic import Field, model_validator
 
 from app.models.enums import AssetType
+from app.schemas.asset_images import AssetImageResponse
+from app.schemas.calculations import AssetCalculationSummary
 from app.schemas.domain import (
     AssetBase,
     CardMetadataBase,
@@ -11,7 +13,6 @@ from app.schemas.domain import (
     RawCardDetailsBase,
     SealedProductMetadataBase,
 )
-from app.schemas.calculations import AssetCalculationSummary
 from app.schemas.purchase_lots import PurchaseLotResponse
 
 
@@ -97,6 +98,8 @@ class AssetResponse(AssetBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    images: list[AssetImageResponse] = Field(default_factory=list)
+    primary_image_url: str
     purchase_lots: list[PurchaseLotResponse] = Field(default_factory=list)
     summary: AssetCalculationSummary
     card_metadata: CardMetadataResponse | None = None

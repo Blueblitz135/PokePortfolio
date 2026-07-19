@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
@@ -31,9 +32,14 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_database():
+    settings.upload_dir.mkdir(parents=True, exist_ok=True)
+    existing_uploads = set(settings.upload_dir.iterdir())
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     yield
+    for uploaded_path in set(settings.upload_dir.iterdir()) - existing_uploads:
+        if uploaded_path.is_file():
+            uploaded_path.unlink()
 
 
 def test_create_raw_card() -> None:
@@ -61,6 +67,11 @@ def test_create_raw_card() -> None:
     assert body["raw_details"]["condition"] == "NM"
     assert "quantity" not in body
     assert body["purchase_lots"] == []
+    assert body["images"] == []
+    assert body["primary_image_url"] == "/static/placeholders/asset.svg"
+    placeholder_response = client.get(body["primary_image_url"])
+    assert placeholder_response.status_code == 200
+    assert placeholder_response.headers["content-type"].startswith("image/svg+xml")
     assert body["summary"] == {
         "total_quantity": 0,
         "total_cost": "0",
@@ -241,3 +252,173 @@ def test_purchase_lot_requires_existing_asset() -> None:
     )
 
     assert response.status_code == 404
+
+
+ASSET_IMAGE_PAYLOADS = {
+    "raw_card": {
+        "asset_type": "raw_card",
+        "display_name": "Pikachu Raw",
+        "card_metadata": {
+            "name": "Pikachu",
+            "set_name": "Base Set",
+            "card_number": "58",
+            "set_total": "102",
+        },
+        "raw_details": {"condition": "NM"},
+    },
+    "graded_card": {
+        "asset_type": "graded_card",
+        "display_name": "Pikachu PSA 10",
+        "card_metadata": {
+            "name": "Pikachu",
+            "set_name": "Base Set",
+            "card_number": "58",
+            "set_total": "102",
+        },
+        "graded_details": {"grading_company": "PSA", "grade": "10"},
+    },
+    "sealed_product": {
+        "asset_type": "sealed_product",
+        "display_name": "Base Set Booster Pack",
+        "sealed_product_metadata": {
+            "product_name": "Base Set Booster Pack",
+            "sealed_product_type": "booster_pack",
+        },
+    },
+}
+
+IMAGE_CONTENT = {
+    "jpg": (b"\xff\xd8\xff\xe0test", "image/jpeg"),
+    "jpeg": (b"\xff\xd8\xff\xe0test", "image/jpeg"),
+    "png": (b"\x89PNG\r\n\x1a\ntest", "image/png"),
+    "webp": (b"RIFF\x04\x00\x00\x00WEBP", "image/webp"),
+}
+
+
+def _create_image_test_asset(asset_type: str = "raw_card") -> int:
+    response = client.post("/api/assets", json=ASSET_IMAGE_PAYLOADS[asset_type])
+    assert response.status_code == 201
+    return response.json()["id"]
+
+
+@pytest.mark.parametrize("asset_type", ASSET_IMAGE_PAYLOADS)
+def test_upload_image_for_each_asset_type(asset_type: str) -> None:
+    asset_id = _create_image_test_asset(asset_type)
+    content, content_type = IMAGE_CONTENT["png"]
+
+    response = client.post(
+        f"/api/assets/{asset_id}/images",
+        files={"file": ("../../card.png", content, content_type)},
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["asset_id"] == asset_id
+    assert body["image_type"] == "uploaded"
+    assert body["is_primary"] is True
+    assert body["url_or_path"].startswith("/uploads/")
+    assert ".." not in body["url_or_path"]
+
+    served_image = client.get(body["url_or_path"])
+    assert served_image.status_code == 200
+    assert served_image.content == content
+
+    detail = client.get(f"/api/assets/{asset_id}").json()
+    assert detail["primary_image_url"] == body["url_or_path"]
+    assert detail["images"] == [body]
+
+    listed_asset = client.get("/api/assets").json()[0]
+    assert listed_asset["primary_image_url"] == body["url_or_path"]
+
+
+@pytest.mark.parametrize("extension", IMAGE_CONTENT)
+def test_upload_accepts_supported_image_types(extension: str) -> None:
+    asset_id = _create_image_test_asset()
+    content, content_type = IMAGE_CONTENT[extension]
+
+    response = client.post(
+        f"/api/assets/{asset_id}/images",
+        files={"file": (f"card.{extension}", content, content_type)},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["url_or_path"].endswith(f".{extension}")
+
+
+def test_new_primary_image_replaces_previous_primary() -> None:
+    asset_id = _create_image_test_asset()
+    png_content, png_type = IMAGE_CONTENT["png"]
+    jpg_content, jpg_type = IMAGE_CONTENT["jpg"]
+
+    first = client.post(
+        f"/api/assets/{asset_id}/images",
+        files={"file": ("first.png", png_content, png_type)},
+    ).json()
+    second_response = client.post(
+        f"/api/assets/{asset_id}/images",
+        data={"is_primary": "true"},
+        files={"file": ("second.jpg", jpg_content, jpg_type)},
+    )
+
+    assert second_response.status_code == 201
+    second = second_response.json()
+    images_response = client.get(f"/api/assets/{asset_id}/images")
+    assert images_response.status_code == 200
+    images = images_response.json()
+    assert [image["id"] for image in images] == [first["id"], second["id"]]
+    assert [image["is_primary"] for image in images] == [False, True]
+    assert client.get(f"/api/assets/{asset_id}").json()[
+        "primary_image_url"
+    ] == second["url_or_path"]
+
+
+@pytest.mark.parametrize(
+    ("filename", "content", "content_type"),
+    [
+        ("card.gif", b"GIF89a", "image/gif"),
+        ("card.png", b"not a png", "image/png"),
+        ("card.png", IMAGE_CONTENT["png"][0], "text/plain"),
+    ],
+)
+def test_upload_rejects_invalid_image_types(
+    filename: str, content: bytes, content_type: str
+) -> None:
+    asset_id = _create_image_test_asset()
+    uploads_before = set(settings.upload_dir.iterdir())
+
+    response = client.post(
+        f"/api/assets/{asset_id}/images",
+        files={"file": (filename, content, content_type)},
+    )
+
+    assert response.status_code == 400
+    assert client.get(f"/api/assets/{asset_id}/images").json() == []
+    assert set(settings.upload_dir.iterdir()) == uploads_before
+
+
+def test_upload_rejects_images_larger_than_five_mb() -> None:
+    asset_id = _create_image_test_asset()
+    oversized_content = IMAGE_CONTENT["png"][0] + b"0" * (
+        settings.max_upload_size_bytes
+    )
+
+    response = client.post(
+        f"/api/assets/{asset_id}/images",
+        files={"file": ("large.png", oversized_content, "image/png")},
+    )
+
+    assert response.status_code == 413
+    assert client.get(f"/api/assets/{asset_id}/images").json() == []
+
+
+def test_upload_requires_existing_asset() -> None:
+    content, content_type = IMAGE_CONTENT["png"]
+    uploads_before = set(settings.upload_dir.iterdir())
+
+    response = client.post(
+        "/api/assets/999/images",
+        files={"file": ("card.png", content, content_type)},
+    )
+
+    assert response.status_code == 404
+    assert set(settings.upload_dir.iterdir()) == uploads_before

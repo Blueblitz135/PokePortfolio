@@ -12,6 +12,9 @@ from app.schemas.assets import AssetCreateRequest, AssetUpdateRequest
 from app.services.calculations import calculate_asset_summary
 
 
+PLACEHOLDER_IMAGE_URL = "/static/placeholders/asset.svg"
+
+
 class AssetNotFoundError(Exception):
     pass
 
@@ -22,13 +25,18 @@ def _asset_query():
         selectinload(Asset.raw_card_details),
         selectinload(Asset.graded_card_details),
         selectinload(Asset.sealed_product_metadata),
+        selectinload(Asset.images),
         selectinload(Asset.purchase_lots),
         selectinload(Asset.price_snapshots),
     )
 
 
-def _with_summary(asset: Asset) -> Asset:
+def _with_derived_fields(asset: Asset) -> Asset:
+    primary_image = next((image for image in asset.images if image.is_primary), None)
     asset.summary = calculate_asset_summary(asset)
+    asset.primary_image_url = (
+        primary_image.url_or_path if primary_image is not None else PLACEHOLDER_IMAGE_URL
+    )
     return asset
 
 
@@ -59,14 +67,14 @@ def create_asset(db: Session, data: AssetCreateRequest) -> Asset:
 
 def list_assets(db: Session) -> list[Asset]:
     result = db.scalars(_asset_query().order_by(Asset.id))
-    return [_with_summary(asset) for asset in result.all()]
+    return [_with_derived_fields(asset) for asset in result.all()]
 
 
 def get_asset(db: Session, asset_id: int) -> Asset:
     asset = db.scalar(_asset_query().where(Asset.id == asset_id))
     if asset is None:
         raise AssetNotFoundError
-    return _with_summary(asset)
+    return _with_derived_fields(asset)
 
 
 def update_asset(db: Session, asset_id: int, data: AssetUpdateRequest) -> Asset:

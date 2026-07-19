@@ -80,7 +80,9 @@ class Asset(Base):
         back_populates="asset", cascade="all, delete-orphan"
     )
     images: Mapped[list[AssetImage]] = relationship(
-        back_populates="asset", cascade="all, delete-orphan"
+        back_populates="asset",
+        cascade="all, delete-orphan",
+        order_by="AssetImage.id",
     )
     price_snapshots: Mapped[list[PriceSnapshot]] = relationship(
         back_populates="asset", cascade="all, delete-orphan"
