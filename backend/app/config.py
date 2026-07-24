@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./pokemon_portfolio.db"
     upload_dir: Path = BACKEND_DIR / "uploads"
     max_upload_size_bytes: int = 5 * 1024 * 1024
+    tcgdex_base_url: str = "https://api.tcgdex.net/v2/en"
+    tcgdex_timeout_seconds: float = 10.0
+    tcgdex_search_limit: int = 20
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

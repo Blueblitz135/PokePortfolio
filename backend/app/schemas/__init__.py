@@ -1,6 +1,7 @@
 from app.schemas.assets import AssetCreateRequest, AssetResponse, AssetUpdateRequest
 from app.schemas.asset_images import AssetImageResponse
 from app.schemas.calculations import AssetCalculationSummary
+from app.schemas.card_search import CardSearchResult
 from app.schemas.domain import (
     AssetCreate,
     AssetImageCreate,
@@ -35,6 +36,7 @@ __all__ = [
     "AssetResponse",
     "AssetUpdateRequest",
     "AssetCalculationSummary",
+    "CardSearchResult",
     "CardMetadataCreate",
     "CardMetadataRead",
     "GradedCardDetailsCreate",
