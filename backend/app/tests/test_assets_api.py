@@ -107,25 +107,61 @@ def test_create_graded_card() -> None:
     }
 
 
-def test_create_sealed_product() -> None:
+SEALED_PRODUCT_TYPES = [
+    "booster_box",
+    "booster_pack",
+    "elite_trainer_box",
+    "booster_bundle",
+    "tin",
+    "collection_box",
+    "other",
+]
+
+
+@pytest.mark.parametrize("sealed_product_type", SEALED_PRODUCT_TYPES)
+def test_create_sealed_product(sealed_product_type: str) -> None:
+    product_name = sealed_product_type.replace("_", " ").title()
     response = client.post(
         "/api/assets",
         json={
             "asset_type": "sealed_product",
-            "display_name": "Evolving Skies Booster Box",
+            "display_name": product_name,
             "sealed_product_metadata": {
-                "product_name": "Evolving Skies Booster Box",
+                "product_name": product_name,
                 "set_name": "Evolving Skies",
                 "year": 2021,
-                "sealed_product_type": "booster_box",
+                "sealed_product_type": sealed_product_type,
+                "is_pokemon_center_exclusive": (
+                    sealed_product_type == "elite_trainer_box"
+                ),
             },
         },
     )
 
     assert response.status_code == 201
-    assert response.json()["sealed_product_metadata"]["sealed_product_type"] == (
-        "booster_box"
+    body = response.json()
+    assert body["sealed_product_metadata"]["sealed_product_type"] == (
+        sealed_product_type
     )
+    assert "pack_count" not in body["sealed_product_metadata"]
+    assert "quantity" not in body
+    assert body["primary_image_url"] == "/static/placeholders/asset.svg"
+
+
+def test_create_sealed_product_rejects_unknown_product_type() -> None:
+    response = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "sealed_product",
+            "display_name": "Mystery Product",
+            "sealed_product_metadata": {
+                "product_name": "Mystery Product",
+                "sealed_product_type": "mystery_product",
+            },
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_list_get_update_and_delete_asset() -> None:
