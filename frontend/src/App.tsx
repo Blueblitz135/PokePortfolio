@@ -1,5 +1,20 @@
-import { HomePage } from "./pages/HomePage";
+import { useEffect } from "react";
+
+import { CollectionPage } from "./pages/CollectionPage";
+import { SealedProductsPage } from "./pages/SealedProductsPage";
 
 export default function App() {
-  return <HomePage />;
+  const path = window.location.pathname;
+
+  useEffect(() => {
+    if (path === "/") {
+      window.history.replaceState(null, "", "/collection");
+    }
+  }, [path]);
+
+  if (path === "/sealed-products") {
+    return <SealedProductsPage />;
+  }
+
+  return <CollectionPage />;
 }

@@ -1,5 +1,11 @@
 export type AssetType = "raw_card" | "graded_card" | "sealed_product";
 
+export type ExternalSource = "manual" | "tcgdex" | "pokemon_tcg_api";
+
+export type RawCardCondition = "NM" | "LP" | "MP" | "DMG";
+
+export type GradingCompany = "PSA" | "BGS" | "CGC" | "TAG" | "OTHER";
+
 export type SealedProductType =
   | "booster_box"
   | "booster_pack"
@@ -21,6 +27,31 @@ export const SEALED_PRODUCT_TYPE_OPTIONS: ReadonlyArray<{
   { value: "collection_box", label: "Collection box" },
   { value: "other", label: "Other" },
 ];
+
+export interface CardMetadata {
+  id: number;
+  external_source: ExternalSource;
+  external_id: string | null;
+  name: string;
+  set_name: string;
+  set_id: string | null;
+  year: number | null;
+  card_number: string;
+  set_total: string | null;
+  rarity: string | null;
+  variant: string | null;
+  image_url: string | null;
+}
+
+export interface RawCardDetails {
+  condition: RawCardCondition;
+}
+
+export interface GradedCardDetails {
+  grading_company: GradingCompany;
+  grade: string;
+  cert_number: string | null;
+}
 
 export interface SealedProductMetadata {
   id: number;
@@ -75,6 +106,9 @@ export interface AssetResponse {
   primary_image_url: string;
   purchase_lots: PurchaseLot[];
   summary: AssetSummary;
+  card_metadata: CardMetadata | null;
+  raw_details: RawCardDetails | null;
+  graded_details: GradedCardDetails | null;
   sealed_product_metadata: SealedProductMetadata | null;
 }
 
@@ -117,4 +151,14 @@ export function getSealedProductTypeLabel(type: SealedProductType): string {
     SEALED_PRODUCT_TYPE_OPTIONS.find((option) => option.value === type)?.label ??
     type
   );
+}
+
+export function getAssetTypeLabel(type: AssetType): string {
+  const labels: Record<AssetType, string> = {
+    raw_card: "Raw card",
+    graded_card: "Graded card",
+    sealed_product: "Sealed product",
+  };
+
+  return labels[type];
 }

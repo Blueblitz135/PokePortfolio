@@ -13,7 +13,7 @@ import {
 
 type ApiState = "loading" | "online" | "offline";
 
-export function HomePage() {
+export function SealedProductsPage() {
   const [apiState, setApiState] = useState<ApiState>("loading");
   const [sealedProducts, setSealedProducts] = useState<SealedProductAsset[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
@@ -80,6 +80,9 @@ export function HomePage() {
     <main className="app-shell">
       <header className="app-header">
         <div>
+          <a className="back-link" href="/collection">
+            ← Back to collection
+          </a>
           <p className="eyebrow">Pokémon Portfolio</p>
           <h1>Sealed product collection</h1>
           <p className="intro">
@@ -92,7 +95,9 @@ export function HomePage() {
 
       <div className="workspace-grid">
         <div className="sidebar-stack">
-          <SealedProductForm onCreated={handleCreated} />
+          <div id="add-sealed-product">
+            <SealedProductForm onCreated={handleCreated} />
+          </div>
 
           <section
             className="panel collection-panel"
