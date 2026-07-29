@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 import type { AssetResponse } from "../types/assets";
 import {
@@ -54,12 +55,12 @@ export function CollectionDashboard({
             </p>
           )}
         </div>
-        <a
+        <Link
           className="primary-button button-link"
-          href="/sealed-products#add-sealed-product"
+          to="/sealed-products#add-sealed-product"
         >
           Add sealed product
-        </a>
+        </Link>
       </div>
 
       {!isLoading && !error && assets.length > 0 && (
@@ -89,12 +90,12 @@ export function CollectionDashboard({
         <div className="empty-state dashboard-empty-state">
           <h3>Your collection is empty</h3>
           <p>No assets yet. Add your first card or sealed product.</p>
-          <a
+          <Link
             className="primary-button button-link"
-            href="/sealed-products#add-sealed-product"
+            to="/sealed-products#add-sealed-product"
           >
             Add a sealed product
-          </a>
+          </Link>
         </div>
       )}
 

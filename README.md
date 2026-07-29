@@ -55,6 +55,12 @@ npm run dev
 Open <http://localhost:5173>. The Vite development server proxies `/api`
 requests to the backend at port 8000.
 
+The frontend uses client-side routes such as `/collection`, `/search`, and
+`/settings`. Vite development and preview servers provide the required SPA
+fallback. A future static host must rewrite unknown non-file routes to
+`/index.html` while leaving `/api`, `/static`, `/uploads`, and real asset files
+untouched.
+
 ## Checks
 
 ```powershell

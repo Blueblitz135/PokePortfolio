@@ -5,6 +5,7 @@ const backendTarget =
   process.env.BACKEND_PROXY_TARGET ?? "http://localhost:8000";
 
 export default defineConfig({
+  appType: "spa",
   plugins: [react()],
   server: {
     proxy: {

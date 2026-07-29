@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import {
   getAssetTypeLabel,
   getSealedProductTypeLabel,
@@ -154,9 +156,9 @@ export function CollectionAssetCard({
       )}
 
       {showDetailsLink && (
-        <a className="card-action" href={`/assets/${asset.id}`}>
+        <Link className="card-action" to={`/assets/${asset.id}`}>
           Open asset details <span aria-hidden="true">→</span>
-        </a>
+        </Link>
       )}
     </article>
   );

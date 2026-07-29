@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { getAsset, listAssets } from "../api/assets";
 import { getHealth } from "../api/health";
@@ -77,12 +78,12 @@ export function SealedProductsPage() {
     sealedProducts.find((asset) => asset.id === selectedAssetId) ?? null;
 
   return (
-    <main className="app-shell">
+    <div className="app-shell">
       <header className="app-header">
         <div>
-          <a className="back-link" href="/collection">
+          <Link className="back-link" to="/collection">
             ← Back to collection
-          </a>
+          </Link>
           <p className="eyebrow">Pokémon Portfolio</p>
           <h1>Sealed product collection</h1>
           <p className="intro">
@@ -128,6 +129,6 @@ export function SealedProductsPage() {
           onRefresh={refreshAsset}
         />
       </div>
-    </main>
+    </div>
   );
 }

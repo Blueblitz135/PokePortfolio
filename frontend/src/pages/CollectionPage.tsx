@@ -40,7 +40,7 @@ export function CollectionPage() {
   }, [loadAssets]);
 
   return (
-    <main className="app-shell">
+    <div className="app-shell">
       <header className="app-header">
         <div>
           <p className="eyebrow">Pokémon Portfolio</p>
@@ -58,6 +58,6 @@ export function CollectionPage() {
         error={loadError}
         onRetry={() => void loadAssets()}
       />
-    </main>
+    </div>
   );
 }
