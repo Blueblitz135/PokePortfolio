@@ -137,6 +137,13 @@ export interface PurchaseLotCreatePayload {
   currency: "CAD";
 }
 
+export interface PurchaseLotUpdatePayload {
+  purchase_date?: string;
+  quantity?: number;
+  purchase_price_per_unit?: string;
+  currency?: string;
+}
+
 export function isSealedProductAsset(
   asset: AssetResponse,
 ): asset is SealedProductAsset {

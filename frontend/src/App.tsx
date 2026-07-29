@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppShell } from "./components/AppShell";
-import { AssetDetailPlaceholderPage } from "./pages/AssetDetailPlaceholderPage";
+import { AssetDetailPage } from "./pages/AssetDetailPage";
 import { CollectionPage } from "./pages/CollectionPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { SearchPage } from "./pages/SearchPage";
@@ -17,10 +17,7 @@ export default function App() {
         <Route path="search" element={<SearchPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="sealed-products" element={<SealedProductsPage />} />
-        <Route
-          path="assets/:assetId"
-          element={<AssetDetailPlaceholderPage />}
-        />
+        <Route path="assets/:assetId" element={<AssetDetailPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

@@ -64,7 +64,7 @@ export function AssetImageUpload({
       setSuccess("Primary image updated.");
     } catch {
       setError(
-        "The image was uploaded, but the product could not be refreshed. Reload the page to see the new image.",
+        "The image was uploaded, but the asset could not be refreshed. Reload the page to see the new image.",
       );
     }
 
@@ -73,7 +73,7 @@ export function AssetImageUpload({
 
   return (
     <section className="detail-section" aria-labelledby="upload-image-title">
-      <h3 id="upload-image-title">Product image</h3>
+      <h3 id="upload-image-title">Upload or change image</h3>
       <form className="upload-form" onSubmit={handleSubmit}>
         <label className="field">
           <span>Choose an image</span>

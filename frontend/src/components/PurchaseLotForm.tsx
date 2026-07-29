@@ -25,12 +25,14 @@ export function PurchaseLotForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [needsRefresh, setNeedsRefresh] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
+    setNeedsRefresh(false);
 
     try {
       await createPurchaseLot(assetId, {
@@ -55,13 +57,31 @@ export function PurchaseLotForm({
     try {
       await onSaved();
       setSuccess("Purchase lot added.");
+      setNeedsRefresh(false);
     } catch {
       setError(
         "The purchase lot was added, but the summary could not be refreshed. Reload the page to see the latest values.",
       );
+      setNeedsRefresh(true);
     }
 
     setIsSubmitting(false);
+  }
+
+  async function handleRetryRefresh() {
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      await onSaved();
+      setSuccess("Asset summary refreshed.");
+      setNeedsRefresh(false);
+    } catch {
+      setError("The asset summary still could not be refreshed.");
+      setNeedsRefresh(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -108,6 +128,16 @@ export function PurchaseLotForm({
             {error}
           </p>
         )}
+        {needsRefresh && (
+          <button
+            className="secondary-button field--wide"
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => void handleRetryRefresh()}
+          >
+            Retry refresh
+          </button>
+        )}
         {success && (
           <p
             className="form-message form-message--success field--wide"
@@ -120,7 +150,7 @@ export function PurchaseLotForm({
         <button
           className="secondary-button field--wide"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || needsRefresh}
         >
           {isSubmitting ? "Adding lot..." : "Add purchase lot"}
         </button>

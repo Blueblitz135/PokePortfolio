@@ -3,6 +3,7 @@ import type {
   AssetResponse,
   PurchaseLot,
   PurchaseLotCreatePayload,
+  PurchaseLotUpdatePayload,
   SealedProductCreatePayload,
 } from "../types/assets";
 
@@ -50,6 +51,17 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function requestNoContent(
+  url: string,
+  options?: RequestInit,
+): Promise<void> {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+}
+
 export function listAssets(): Promise<AssetResponse[]> {
   return request<AssetResponse[]>("/api/assets");
 }
@@ -76,6 +88,23 @@ export function createPurchaseLot(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+  });
+}
+
+export function updatePurchaseLot(
+  lotId: number,
+  payload: PurchaseLotUpdatePayload,
+): Promise<PurchaseLot> {
+  return request<PurchaseLot>(`/api/purchase-lots/${lotId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deletePurchaseLot(lotId: number): Promise<void> {
+  return requestNoContent(`/api/purchase-lots/${lotId}`, {
+    method: "DELETE",
   });
 }
 
