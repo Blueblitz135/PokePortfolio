@@ -35,25 +35,30 @@ Actions:
 
 ---
 
-### Add asset page/modal
+### Manual sealed-product page
 
 Route:
 
 ```txt
-/assets/new
+/sealed-products
 ```
 
 Purpose:
 
-Allow user to create a raw card, graded card, or sealed product.
+Provide the manual, upload-first workflow for sealed products that are not
+supported by card search.
 
 Flow:
 
-1. User selects asset type.
-2. User enters metadata manually or searches card metadata.
-3. User optionally uploads image.
-4. User adds first purchase lot.
+1. User enters sealed-product metadata manually.
+2. User selects the sealed-product type.
+3. User optionally uploads an image.
+4. User adds the first purchase lot.
 5. Asset appears in collection.
+
+Raw and graded cards should use Card Search when possible. A future generic
+manual fallback can be added under a separately scoped ticket if it is still
+needed.
 
 ---
 
@@ -100,9 +105,18 @@ Sections:
 
 ---
 
-### Card search page or component
+### Card search page
 
-Used inside Add Asset.
+Route:
+
+```txt
+/search
+```
+
+Purpose:
+
+Find normalized card metadata and add an owned raw or graded card without
+re-entering provider metadata.
 
 Features:
 
@@ -110,7 +124,14 @@ Features:
 - display card image
 - display set name
 - display card number/set total
+- display rarity and year when available
 - select card
+- choose raw or graded ownership details
+- add first purchase lot
+- confirm before creating the asset
+
+TCGdex does not provide a reliable sealed-product catalog. Sealed products
+continue to use the manual, upload-first flow.
 
 ---
 

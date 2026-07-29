@@ -73,12 +73,18 @@ Suggested commit messages:
 007: Add graded card overlay
 008: Add sealed product support
 009: Add collection dashboard
+009A: Add application shell and collapsible sidebar
 010: Add asset detail page
+010A: Add card search-to-collection workflow
 011: Add manual pricing snapshots
 012: Add currency layer
+012A: Add local portfolio preferences
 013: Add tests and quality checks
 014: Add external pricing adapters
 ```
+
+See `docs/12_frontend_navigation_and_search_plan.md` for the dependencies and
+scope boundaries of tickets 009A, 010A, and 012A.
 
 ## Step 5 - Only then use multiagent
 
