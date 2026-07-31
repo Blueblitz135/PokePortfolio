@@ -130,6 +130,50 @@ export interface SealedProductCreatePayload {
   };
 }
 
+export interface CardMetadataCreatePayload {
+  external_source: ExternalSource;
+  external_id: string;
+  name: string;
+  set_name: string;
+  set_id: string;
+  year: number | null;
+  card_number: string;
+  set_total: string | null;
+  rarity: string | null;
+  variant: null;
+  image_url: string | null;
+}
+
+interface CardAssetCreateBase {
+  display_name: string;
+  user_note: string | null;
+  card_metadata: CardMetadataCreatePayload;
+}
+
+export interface RawCardCreatePayload extends CardAssetCreateBase {
+  asset_type: "raw_card";
+  raw_details: {
+    condition: RawCardCondition;
+  };
+}
+
+export interface GradedCardCreatePayload extends CardAssetCreateBase {
+  asset_type: "graded_card";
+  graded_details: {
+    grading_company: GradingCompany;
+    grade: string;
+    cert_number: string | null;
+  };
+}
+
+export type CardAssetCreatePayload =
+  | RawCardCreatePayload
+  | GradedCardCreatePayload;
+
+export type AssetCreatePayload =
+  | CardAssetCreatePayload
+  | SealedProductCreatePayload;
+
 export interface PurchaseLotCreatePayload {
   purchase_date: string;
   quantity: number;

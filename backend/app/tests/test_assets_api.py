@@ -299,6 +299,7 @@ ASSET_IMAGE_PAYLOADS = {
             "set_name": "Base Set",
             "card_number": "58",
             "set_total": "102",
+            "image_url": "https://assets.example.test/pikachu.png",
         },
         "raw_details": {"condition": "NM"},
     },
@@ -335,6 +336,17 @@ def _create_image_test_asset(asset_type: str = "raw_card") -> int:
     response = client.post("/api/assets", json=ASSET_IMAGE_PAYLOADS[asset_type])
     assert response.status_code == 201
     return response.json()["id"]
+
+
+def test_card_metadata_image_is_used_without_creating_asset_image() -> None:
+    asset_id = _create_image_test_asset()
+
+    detail = client.get(f"/api/assets/{asset_id}").json()
+
+    assert detail["primary_image_url"] == (
+        ASSET_IMAGE_PAYLOADS["raw_card"]["card_metadata"]["image_url"]
+    )
+    assert detail["images"] == []
 
 
 @pytest.mark.parametrize("asset_type", ASSET_IMAGE_PAYLOADS)

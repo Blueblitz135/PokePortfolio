@@ -33,9 +33,14 @@ def _asset_query():
 
 def _with_derived_fields(asset: Asset) -> Asset:
     primary_image = next((image for image in asset.images if image.is_primary), None)
+    card_metadata_image = (
+        asset.card_metadata.image_url if asset.card_metadata is not None else None
+    )
     asset.summary = calculate_asset_summary(asset)
     asset.primary_image_url = (
-        primary_image.url_or_path if primary_image is not None else PLACEHOLDER_IMAGE_URL
+        primary_image.url_or_path
+        if primary_image is not None
+        else card_metadata_image or PLACEHOLDER_IMAGE_URL
     )
     return asset
 
