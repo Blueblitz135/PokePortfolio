@@ -75,6 +75,7 @@ def test_create_raw_card() -> None:
     assert placeholder_response.status_code == 200
     assert placeholder_response.headers["content-type"].startswith("image/svg+xml")
     assert body["summary"] == {
+        "currency": "CAD",
         "total_quantity": 0,
         "total_cost": "0",
         "average_cost_per_unit": None,
@@ -290,6 +291,55 @@ def test_purchase_lot_requires_existing_asset() -> None:
     )
 
     assert response.status_code == 404
+
+
+def test_purchase_lot_api_rejects_unsupported_or_null_currency() -> None:
+    asset_id = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "sealed_product",
+            "display_name": "Booster Box",
+            "sealed_product_metadata": {
+                "product_name": "Booster Box",
+                "sealed_product_type": "booster_box",
+            },
+        },
+    ).json()["id"]
+
+    unsupported_create = client.post(
+        f"/api/assets/{asset_id}/purchase-lots",
+        json={
+            "purchase_date": "2025-08-01",
+            "quantity": 1,
+            "purchase_price_per_unit": "750.00",
+            "currency": "USD",
+        },
+    )
+    assert unsupported_create.status_code == 422
+
+    valid_lot = client.post(
+        f"/api/assets/{asset_id}/purchase-lots",
+        json={
+            "purchase_date": "2025-08-01",
+            "quantity": 1,
+            "purchase_price_per_unit": "750.00",
+        },
+    )
+    assert valid_lot.status_code == 201
+    lot_id = valid_lot.json()["id"]
+
+    unsupported_update = client.patch(
+        f"/api/purchase-lots/{lot_id}", json={"currency": "USD"}
+    )
+    null_update = client.patch(
+        f"/api/purchase-lots/{lot_id}", json={"currency": None}
+    )
+
+    assert unsupported_update.status_code == 422
+    assert null_update.status_code == 422
+    assert client.get(f"/api/assets/{asset_id}").json()["purchase_lots"][0][
+        "currency"
+    ] == "CAD"
 
 
 def test_manual_price_snapshots_update_asset_calculations() -> None:

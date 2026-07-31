@@ -4,26 +4,11 @@ import {
   getSealedProductTypeLabel,
   type SealedProductAsset,
 } from "../types/assets";
+import { formatCurrency } from "../utils/formatters";
 
 interface SealedProductDetailProps {
   asset: SealedProductAsset | null;
   onRefresh: (assetId: number) => Promise<void>;
-}
-
-function formatCad(value: string | null): string {
-  if (value === null) {
-    return "Not available";
-  }
-
-  const amount = Number(value);
-  if (!Number.isFinite(amount)) {
-    return value;
-  }
-
-  return new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
-  }).format(amount);
 }
 
 function formatPurchaseDate(value: string): string {
@@ -110,12 +95,20 @@ export function SealedProductDetail({
           </div>
           <div className="summary-card">
             <span>Total cost</span>
-            <strong>{formatCad(asset.summary.total_cost)}</strong>
+            <strong>
+              {formatCurrency(
+                asset.summary.total_cost,
+                asset.summary.currency,
+              )}
+            </strong>
           </div>
           <div className="summary-card">
             <span>Average cost</span>
             <strong>
-              {formatCad(asset.summary.average_cost_per_unit)}
+              {formatCurrency(
+                asset.summary.average_cost_per_unit,
+                asset.summary.currency,
+              )}
               {asset.summary.average_cost_per_unit !== null && " / unit"}
             </strong>
           </div>
@@ -143,7 +136,12 @@ export function SealedProductDetail({
                   <tr key={lot.id}>
                     <td>{formatPurchaseDate(lot.purchase_date)}</td>
                     <td>{lot.quantity}</td>
-                    <td>{formatCad(lot.purchase_price_per_unit)}</td>
+                    <td>
+                      {formatCurrency(
+                        lot.purchase_price_per_unit,
+                        lot.currency,
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

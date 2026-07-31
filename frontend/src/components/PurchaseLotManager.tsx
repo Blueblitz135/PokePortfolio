@@ -11,7 +11,7 @@ import {
   updatePurchaseLot,
 } from "../api/assets";
 import type { PurchaseLot } from "../types/assets";
-import { formatCad } from "../utils/formatters";
+import { formatCurrency } from "../utils/formatters";
 
 interface PurchaseLotManagerProps {
   assetName: string;
@@ -296,9 +296,14 @@ export function PurchaseLotManager({
                   <tr key={lot.id}>
                     <td>{formatPurchaseDate(lot.purchase_date)}</td>
                     <td>{lot.quantity}</td>
-                    <td>{formatCad(lot.purchase_price_per_unit)}</td>
+                    <td>
+                      {formatCurrency(
+                        lot.purchase_price_per_unit,
+                        lot.currency,
+                      )}
+                    </td>
                     <td>{lot.currency}</td>
-                    <td>{formatCad(String(lotCost))}</td>
+                    <td>{formatCurrency(lotCost, lot.currency)}</td>
                     <td>
                       <div className="purchase-lot-actions">
                         <button
@@ -404,7 +409,11 @@ export function PurchaseLotManager({
           </h3>
           <p>
             {getLotDescription(deleteLot)} at{" "}
-            {formatCad(deleteLot.purchase_price_per_unit)} per unit. This
+            {formatCurrency(
+              deleteLot.purchase_price_per_unit,
+              deleteLot.currency,
+            )}{" "}
+            per unit. This
             action cannot be undone.
           </p>
           <div className="lot-form-actions">

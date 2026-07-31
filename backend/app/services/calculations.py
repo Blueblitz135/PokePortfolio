@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from app.models import Asset, PriceSnapshot
 from app.schemas.calculations import AssetCalculationSummary
+from app.services.currency import DEFAULT_CURRENCY, require_normalized_currency
 
 
 def get_latest_price_snapshot(asset: Asset) -> PriceSnapshot | None:
@@ -14,19 +15,29 @@ def get_latest_price_snapshot(asset: Asset) -> PriceSnapshot | None:
     )
 
 
+def _require_normalized_currency(currency: str | None) -> None:
+    require_normalized_currency(
+        currency if currency is not None else DEFAULT_CURRENCY
+    )
+
+
 def calculate_asset_summary(asset: Asset) -> AssetCalculationSummary:
     total_quantity = sum(lot.quantity for lot in asset.purchase_lots)
-    total_cost = sum(
-        lot.purchase_price_per_unit * lot.quantity for lot in asset.purchase_lots
-    )
+    total_cost = Decimal("0")
+    for lot in asset.purchase_lots:
+        _require_normalized_currency(lot.currency)
+        total_cost += lot.purchase_price_per_unit * lot.quantity
+
     average_cost_per_unit = (
         total_cost / total_quantity if total_quantity > 0 else None
     )
 
     latest_snapshot = get_latest_price_snapshot(asset)
-    market_price_per_unit = (
-        latest_snapshot.market_price_per_unit if latest_snapshot is not None else None
-    )
+    if latest_snapshot is None:
+        market_price_per_unit = None
+    else:
+        _require_normalized_currency(latest_snapshot.currency)
+        market_price_per_unit = latest_snapshot.market_price_per_unit
     total_market_value = (
         market_price_per_unit * total_quantity
         if market_price_per_unit is not None
@@ -42,6 +53,7 @@ def calculate_asset_summary(asset: Asset) -> AssetCalculationSummary:
     )
 
     return AssetCalculationSummary(
+        currency=DEFAULT_CURRENCY,
         total_quantity=total_quantity,
         total_cost=total_cost,
         average_cost_per_unit=average_cost_per_unit,

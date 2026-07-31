@@ -5,7 +5,7 @@ import {
   getAssetTypeLabel,
   getSealedProductTypeLabel,
 } from "../types/assets";
-import { formatCad, formatPercent } from "../utils/formatters";
+import { formatCurrency, formatPercent } from "../utils/formatters";
 import { AssetImageUpload } from "./AssetImageUpload";
 import { ManualPriceSnapshotForm } from "./ManualPriceSnapshotForm";
 import { PurchaseLotForm } from "./PurchaseLotForm";
@@ -243,24 +243,47 @@ export function AssetDetailView({
           </div>
           <div className="summary-card">
             <span>Total cost</span>
-            <strong>{formatCad(asset.summary.total_cost)}</strong>
+            <strong>
+              {formatCurrency(
+                asset.summary.total_cost,
+                asset.summary.currency,
+              )}
+            </strong>
           </div>
           <div className="summary-card">
             <span>Average cost</span>
-            <strong>{formatCad(asset.summary.average_cost_per_unit)}</strong>
+            <strong>
+              {formatCurrency(
+                asset.summary.average_cost_per_unit,
+                asset.summary.currency,
+              )}
+            </strong>
           </div>
           <div className="summary-card">
             <span>Latest market price</span>
-            <strong>{formatCad(asset.summary.market_price_per_unit)}</strong>
+            <strong>
+              {formatCurrency(
+                asset.summary.market_price_per_unit,
+                asset.summary.currency,
+              )}
+            </strong>
           </div>
           <div className="summary-card">
             <span>Total market value</span>
-            <strong>{formatCad(asset.summary.total_market_value)}</strong>
+            <strong>
+              {formatCurrency(
+                asset.summary.total_market_value,
+                asset.summary.currency,
+              )}
+            </strong>
           </div>
           <div className="summary-card">
             <span>Profit / loss</span>
             <strong className={profitLossClass}>
-              {formatCad(asset.summary.profit_loss)}
+              {formatCurrency(
+                asset.summary.profit_loss,
+                asset.summary.currency,
+              )}
             </strong>
           </div>
           <div className="summary-card">

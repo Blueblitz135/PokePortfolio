@@ -9,7 +9,7 @@ import type {
 } from "../types/cardSearch";
 import { formatSearchCardNumber } from "../types/cardSearch";
 import { validatePurchaseLotDraft } from "../utils/cardAddValidation";
-import { formatCad } from "../utils/formatters";
+import { formatCurrency } from "../utils/formatters";
 
 interface CardAddConfirmationProps {
   card: CardSearchResult;
@@ -299,7 +299,7 @@ export function CardAddConfirmation({
         </div>
         <div>
           <dt>Price per unit</dt>
-          <dd>{formatCad(draft.purchasePricePerUnit)}</dd>
+          <dd>{formatCurrency(draft.purchasePricePerUnit, "CAD")}</dd>
         </div>
         <div>
           <dt>Currency</dt>

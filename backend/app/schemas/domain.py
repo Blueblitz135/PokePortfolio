@@ -1,8 +1,8 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import (
     AssetType,
@@ -13,6 +13,10 @@ from app.models.enums import (
     RawCardCondition,
     SealedProductType,
 )
+from app.services.currency import DEFAULT_CURRENCY, normalize_currency
+
+
+CurrencyCode = Literal["CAD"]
 
 
 class DomainSchema(BaseModel):
@@ -108,7 +112,14 @@ class PurchaseLotBase(DomainSchema):
     purchase_price_per_unit: Decimal = Field(
         ge=0, max_digits=12, decimal_places=2
     )
-    currency: str = Field(default="CAD", min_length=3, max_length=3)
+    currency: CurrencyCode = DEFAULT_CURRENCY
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency_code(cls, value: object) -> object:
+        if isinstance(value, str):
+            return normalize_currency(value)
+        return value
 
 
 class PurchaseLotCreate(PurchaseLotBase):
@@ -140,13 +151,20 @@ class PriceSnapshotBase(DomainSchema):
     market_price_per_unit: Decimal = Field(
         ge=0, max_digits=12, decimal_places=2
     )
-    currency: str = Field(default="CAD", min_length=3, max_length=3)
+    currency: CurrencyCode = DEFAULT_CURRENCY
     source: PriceSource = PriceSource.MANUAL
     confidence: Decimal | None = Field(
         default=None, ge=0, le=1, max_digits=4, decimal_places=3
     )
     observed_at: datetime | None = None
     metadata_json: dict[str, Any] | None = None
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency_code(cls, value: object) -> object:
+        if isinstance(value, str):
+            return normalize_currency(value)
+        return value
 
 
 class PriceSnapshotCreate(PriceSnapshotBase):

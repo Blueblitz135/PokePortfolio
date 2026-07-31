@@ -1,9 +1,11 @@
 from decimal import Decimal
 
-from app.schemas.domain import DomainSchema
+from app.schemas.domain import CurrencyCode, DomainSchema
+from app.services.currency import DEFAULT_CURRENCY
 
 
 class AssetCalculationSummary(DomainSchema):
+    currency: CurrencyCode = DEFAULT_CURRENCY
     total_quantity: int
     total_cost: Decimal
     average_cost_per_unit: Decimal | None

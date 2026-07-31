@@ -5,7 +5,7 @@ import {
   getSealedProductTypeLabel,
   type AssetResponse,
 } from "../types/assets";
-import { formatCad, formatPercent } from "../utils/formatters";
+import { formatCurrency, formatPercent } from "../utils/formatters";
 
 interface CollectionAssetCardProps {
   asset: AssetResponse;
@@ -125,20 +125,38 @@ export function CollectionAssetCard({
         </div>
         <div>
           <dt>Average cost</dt>
-          <dd>{formatCad(asset.summary.average_cost_per_unit)}</dd>
+          <dd>
+            {formatCurrency(
+              asset.summary.average_cost_per_unit,
+              asset.summary.currency,
+            )}
+          </dd>
         </div>
         <div>
           <dt>Latest market price</dt>
-          <dd>{formatCad(asset.summary.market_price_per_unit)}</dd>
+          <dd>
+            {formatCurrency(
+              asset.summary.market_price_per_unit,
+              asset.summary.currency,
+            )}
+          </dd>
         </div>
         <div>
           <dt>Total market value</dt>
-          <dd>{formatCad(asset.summary.total_market_value)}</dd>
+          <dd>
+            {formatCurrency(
+              asset.summary.total_market_value,
+              asset.summary.currency,
+            )}
+          </dd>
         </div>
         <div>
           <dt>Profit / loss</dt>
           <dd className={profitLossClass}>
-            {formatCad(asset.summary.profit_loss)}
+            {formatCurrency(
+              asset.summary.profit_loss,
+              asset.summary.currency,
+            )}
           </dd>
         </div>
         <div>

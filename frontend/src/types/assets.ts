@@ -1,3 +1,5 @@
+import type { CurrencyCode } from "./currency";
+
 export type AssetType = "raw_card" | "graded_card" | "sealed_product";
 
 export type ExternalSource = "manual" | "tcgdex" | "pokemon_tcg_api";
@@ -71,7 +73,7 @@ export interface PurchaseLot {
   purchase_date: string;
   quantity: number;
   purchase_price_per_unit: string;
-  currency: string;
+  currency: CurrencyCode;
   created_at: string;
   updated_at: string;
 }
@@ -89,13 +91,14 @@ export interface PriceSnapshot {
   id: number;
   asset_id: number;
   market_price_per_unit: string;
-  currency: "CAD";
+  currency: CurrencyCode;
   source: "manual";
   confidence: string | null;
   observed_at: string;
 }
 
 export interface AssetSummary {
+  currency: CurrencyCode;
   total_quantity: number;
   total_cost: string;
   average_cost_per_unit: string | null;
@@ -189,19 +192,19 @@ export interface PurchaseLotCreatePayload {
   purchase_date: string;
   quantity: number;
   purchase_price_per_unit: string;
-  currency: "CAD";
+  currency: CurrencyCode;
 }
 
 export interface PurchaseLotUpdatePayload {
   purchase_date?: string;
   quantity?: number;
   purchase_price_per_unit?: string;
-  currency?: string;
+  currency?: CurrencyCode;
 }
 
 export interface ManualPriceSnapshotCreatePayload {
   market_price_per_unit: string;
-  currency: "CAD";
+  currency: CurrencyCode;
   source: "manual";
   confidence: 0.5;
 }

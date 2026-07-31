@@ -6,6 +6,11 @@ from pydantic import ValidationError
 
 from app.models import AssetType, RawCardCondition
 from app.schemas import AssetCreate, CardMetadataCreate, PurchaseLotCreate
+from app.schemas.price_snapshots import PriceSnapshotCreateRequest
+from app.schemas.purchase_lots import (
+    PurchaseLotCreateRequest,
+    PurchaseLotUpdateRequest,
+)
 
 
 def test_asset_schema_has_no_quantity_field() -> None:
@@ -47,6 +52,34 @@ def test_purchase_lot_defaults_to_cad_and_requires_positive_quantity() -> None:
             quantity=0,
             purchase_price_per_unit=Decimal("750.00"),
         )
+
+
+def test_currency_schemas_normalize_cad_and_reject_unsupported_values() -> None:
+    create_lot = PurchaseLotCreateRequest(
+        purchase_date=date(2025, 8, 1),
+        quantity=1,
+        purchase_price_per_unit=Decimal("750.00"),
+        currency="cad",
+    )
+    update_lot = PurchaseLotUpdateRequest(currency=" cad ")
+    snapshot = PriceSnapshotCreateRequest(
+        market_price_per_unit=Decimal("900.00"), currency="cad"
+    )
+
+    assert create_lot.currency == "CAD"
+    assert update_lot.currency == "CAD"
+    assert snapshot.currency == "CAD"
+
+    with pytest.raises(ValidationError):
+        PurchaseLotCreateRequest(
+            purchase_date=date(2025, 8, 1),
+            quantity=1,
+            purchase_price_per_unit=Decimal("750.00"),
+            currency="USD",
+        )
+
+    with pytest.raises(ValidationError):
+        PurchaseLotUpdateRequest(currency=None)
 
 
 def test_raw_card_condition_uses_supported_values() -> None:

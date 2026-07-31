@@ -1,8 +1,11 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
+import pytest
+
 from app.models import Asset, AssetType, PriceSnapshot, PurchaseLot
 from app.services.calculations import calculate_asset_summary
+from app.services.currency import UnsupportedCurrencyError
 
 
 def test_calculation_summary_without_purchase_lots_or_price() -> None:
@@ -10,6 +13,7 @@ def test_calculation_summary_without_purchase_lots_or_price() -> None:
 
     summary = calculate_asset_summary(asset)
 
+    assert summary.currency == "CAD"
     assert summary.total_quantity == 0
     assert summary.total_cost == Decimal("0")
     assert summary.average_cost_per_unit is None
@@ -39,6 +43,7 @@ def test_calculation_summary_with_multiple_purchase_lots() -> None:
 
     summary = calculate_asset_summary(asset)
 
+    assert summary.currency == "CAD"
     assert summary.total_quantity == 3
     assert summary.total_cost == Decimal("2550.00")
     assert summary.average_cost_per_unit == Decimal("850.00")
@@ -75,7 +80,26 @@ def test_calculation_summary_uses_latest_price_snapshot() -> None:
 
     summary = calculate_asset_summary(asset)
 
+    assert summary.currency == "CAD"
     assert summary.market_price_per_unit == Decimal("1000.00")
     assert summary.total_market_value == Decimal("2000.00")
     assert summary.profit_loss == Decimal("500.00")
     assert summary.roi_percent == Decimal("33.33333333333333333333333333")
+
+
+def test_calculation_rejects_values_that_are_not_normalized_to_cad() -> None:
+    asset = Asset(
+        asset_type=AssetType.SEALED_PRODUCT,
+        display_name="Booster Box",
+        purchase_lots=[
+            PurchaseLot(
+                purchase_date=date(2025, 8, 1),
+                quantity=1,
+                purchase_price_per_unit=Decimal("750.00"),
+                currency="USD",
+            )
+        ],
+    )
+
+    with pytest.raises(UnsupportedCurrencyError, match="USD"):
+        calculate_asset_summary(asset)

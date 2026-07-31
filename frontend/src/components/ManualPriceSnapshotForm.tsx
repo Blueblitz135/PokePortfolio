@@ -2,7 +2,7 @@ import { type FormEvent, useRef, useState } from "react";
 
 import { createManualPriceSnapshot } from "../api/assets";
 import type { PriceSnapshot } from "../types/assets";
-import { formatCad } from "../utils/formatters";
+import { formatCurrency } from "../utils/formatters";
 
 interface ManualPriceSnapshotFormProps {
   assetId: number;
@@ -148,7 +148,12 @@ export function ManualPriceSnapshotForm({
         <dl className="manual-price-latest" aria-label="Latest price snapshot">
           <div>
             <dt>Latest price</dt>
-            <dd>{formatCad(latestSnapshot.market_price_per_unit)}</dd>
+            <dd>
+              {formatCurrency(
+                latestSnapshot.market_price_per_unit,
+                latestSnapshot.currency,
+              )}
+            </dd>
           </div>
           <div>
             <dt>Currency</dt>
