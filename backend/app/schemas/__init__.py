@@ -25,6 +25,10 @@ from app.schemas.purchase_lots import (
     PurchaseLotResponse,
     PurchaseLotUpdateRequest,
 )
+from app.schemas.price_snapshots import (
+    PriceSnapshotCreateRequest,
+    PriceSnapshotResponse,
+)
 
 __all__ = [
     "AssetCreate",
@@ -42,7 +46,9 @@ __all__ = [
     "GradedCardDetailsCreate",
     "GradedCardDetailsRead",
     "PriceSnapshotCreate",
+    "PriceSnapshotCreateRequest",
     "PriceSnapshotRead",
+    "PriceSnapshotResponse",
     "PurchaseLotCreate",
     "PurchaseLotCreateRequest",
     "PurchaseLotRead",

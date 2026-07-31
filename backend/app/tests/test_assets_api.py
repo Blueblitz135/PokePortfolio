@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -288,6 +290,114 @@ def test_purchase_lot_requires_existing_asset() -> None:
     )
 
     assert response.status_code == 404
+
+
+def test_manual_price_snapshots_update_asset_calculations() -> None:
+    asset_id = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "sealed_product",
+            "display_name": "Evolving Skies Booster Box",
+            "sealed_product_metadata": {
+                "product_name": "Evolving Skies Booster Box",
+                "sealed_product_type": "booster_box",
+            },
+        },
+    ).json()["id"]
+    client.post(
+        f"/api/assets/{asset_id}/purchase-lots",
+        json={
+            "purchase_date": "2025-08-01",
+            "quantity": 2,
+            "purchase_price_per_unit": "750.00",
+        },
+    )
+
+    first_response = client.post(
+        f"/api/assets/{asset_id}/price-snapshots",
+        json={"market_price_per_unit": "0.00", "currency": "cad"},
+    )
+
+    assert first_response.status_code == 201
+    first_snapshot = first_response.json()
+    assert first_snapshot["asset_id"] == asset_id
+    assert first_snapshot["market_price_per_unit"] == "0.00"
+    assert first_snapshot["currency"] == "CAD"
+    assert first_snapshot["source"] == "manual"
+    assert first_snapshot["confidence"] == "0.500"
+    assert first_snapshot["observed_at"] is not None
+
+    second_response = client.post(
+        f"/api/assets/{asset_id}/price-snapshots",
+        json={
+            "market_price_per_unit": "1000.00",
+            "source": "manual",
+            "confidence": "0.75",
+        },
+    )
+
+    assert second_response.status_code == 201
+    second_snapshot = second_response.json()
+
+    detail = client.get(f"/api/assets/{asset_id}").json()
+    assert detail["latest_price_snapshot"] == second_snapshot
+    assert detail["latest_price_snapshot"]["id"] != first_snapshot["id"]
+    assert detail["summary"]["market_price_per_unit"] == "1000.00"
+    assert detail["summary"]["total_market_value"] == "2000.00"
+    assert detail["summary"]["profit_loss"] == "500.00"
+    assert Decimal(detail["summary"]["roi_percent"]) == Decimal(
+        "33.33333333333333333333333333"
+    )
+
+
+def test_manual_price_snapshot_requires_existing_asset() -> None:
+    response = client.post(
+        "/api/assets/999/price-snapshots",
+        json={"market_price_per_unit": "100.00"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Asset 999 was not found."
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"market_price_per_unit": "-0.01"},
+        {"market_price_per_unit": "1.001"},
+        {"market_price_per_unit": "10000000000.00"},
+        {"market_price_per_unit": "100.00", "currency": "USD"},
+        {"market_price_per_unit": "100.00", "source": "ebay"},
+        {"market_price_per_unit": "100.00", "confidence": "1.001"},
+        {
+            "market_price_per_unit": "100.00",
+            "observed_at": "2020-01-01T00:00:00Z",
+        },
+    ],
+)
+def test_manual_price_snapshot_rejects_invalid_or_server_owned_fields(
+    payload: dict[str, str],
+) -> None:
+    asset_id = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "sealed_product",
+            "display_name": "Booster Box",
+            "sealed_product_metadata": {
+                "product_name": "Booster Box",
+                "sealed_product_type": "booster_box",
+            },
+        },
+    ).json()["id"]
+
+    response = client.post(
+        f"/api/assets/{asset_id}/price-snapshots", json=payload
+    )
+
+    assert response.status_code == 422
+    assert client.get(f"/api/assets/{asset_id}").json()[
+        "latest_price_snapshot"
+    ] is None
 
 
 ASSET_IMAGE_PAYLOADS = {

@@ -2,6 +2,8 @@ import type {
   AssetCreatePayload,
   AssetImage,
   AssetResponse,
+  ManualPriceSnapshotCreatePayload,
+  PriceSnapshot,
   PurchaseLot,
   PurchaseLotCreatePayload,
   PurchaseLotUpdatePayload,
@@ -59,6 +61,20 @@ export function deletePurchaseLot(lotId: number): Promise<void> {
   return requestNoContent(`/api/purchase-lots/${lotId}`, {
     method: "DELETE",
   });
+}
+
+export function createManualPriceSnapshot(
+  assetId: number,
+  payload: ManualPriceSnapshotCreatePayload,
+): Promise<PriceSnapshot> {
+  return requestJson<PriceSnapshot>(
+    `/api/assets/${assetId}/price-snapshots`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export function uploadAssetImage(

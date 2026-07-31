@@ -7,6 +7,7 @@ import {
 } from "../types/assets";
 import { formatCad, formatPercent } from "../utils/formatters";
 import { AssetImageUpload } from "./AssetImageUpload";
+import { ManualPriceSnapshotForm } from "./ManualPriceSnapshotForm";
 import { PurchaseLotForm } from "./PurchaseLotForm";
 import { PurchaseLotManager } from "./PurchaseLotManager";
 
@@ -275,6 +276,13 @@ export function AssetDetailView({
           </p>
         )}
       </section>
+
+      <ManualPriceSnapshotForm
+        key={`price-${asset.id}`}
+        assetId={asset.id}
+        latestSnapshot={asset.latest_price_snapshot}
+        onSaved={onRefresh}
+      />
 
       <section
         className="detail-section purchase-history-section"

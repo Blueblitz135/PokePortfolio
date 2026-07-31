@@ -14,6 +14,7 @@ from app.schemas.domain import (
     SealedProductMetadataBase,
 )
 from app.schemas.purchase_lots import PurchaseLotResponse
+from app.schemas.price_snapshots import PriceSnapshotResponse
 
 
 class CardMetadataPayload(CardMetadataBase):
@@ -101,6 +102,7 @@ class AssetResponse(AssetBase):
     images: list[AssetImageResponse] = Field(default_factory=list)
     primary_image_url: str
     purchase_lots: list[PurchaseLotResponse] = Field(default_factory=list)
+    latest_price_snapshot: PriceSnapshotResponse | None = None
     summary: AssetCalculationSummary
     card_metadata: CardMetadataResponse | None = None
     raw_details: RawCardDetailsResponse | None = Field(

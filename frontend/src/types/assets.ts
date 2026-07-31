@@ -85,6 +85,16 @@ export interface AssetImage {
   created_at: string;
 }
 
+export interface PriceSnapshot {
+  id: number;
+  asset_id: number;
+  market_price_per_unit: string;
+  currency: "CAD";
+  source: "manual";
+  confidence: string | null;
+  observed_at: string;
+}
+
 export interface AssetSummary {
   total_quantity: number;
   total_cost: string;
@@ -105,6 +115,7 @@ export interface AssetResponse {
   images: AssetImage[];
   primary_image_url: string;
   purchase_lots: PurchaseLot[];
+  latest_price_snapshot: PriceSnapshot | null;
   summary: AssetSummary;
   card_metadata: CardMetadata | null;
   raw_details: RawCardDetails | null;
@@ -186,6 +197,13 @@ export interface PurchaseLotUpdatePayload {
   quantity?: number;
   purchase_price_per_unit?: string;
   currency?: string;
+}
+
+export interface ManualPriceSnapshotCreatePayload {
+  market_price_per_unit: string;
+  currency: "CAD";
+  source: "manual";
+  confidence: 0.5;
 }
 
 export function isSealedProductAsset(

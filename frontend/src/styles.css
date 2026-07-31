@@ -1138,6 +1138,50 @@ td {
   font-size: 0.8rem;
 }
 
+.manual-price-latest {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.manual-price-latest > div {
+  min-width: 0;
+  padding: 0.75rem;
+  border-radius: 0.55rem;
+  background: #f6f8f7;
+}
+
+.manual-price-latest dt {
+  margin-bottom: 0.25rem;
+  color: #68746c;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.manual-price-latest dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.manual-price-section > .market-unavailable {
+  margin-bottom: 1rem;
+}
+
+.manual-price-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  max-width: 42rem;
+}
+
+.manual-price-form > .form-message,
+.manual-price-form > .manual-price-refresh {
+  grid-column: 1 / -1;
+}
+
 .card-action {
   display: inline-flex;
   align-items: center;
@@ -1665,8 +1709,13 @@ td {
   }
 
   .card-search-form,
-  .confirmation-grid {
+  .confirmation-grid,
+  .manual-price-form {
     grid-template-columns: 1fr;
+  }
+
+  .manual-price-form .secondary-button {
+    width: 100%;
   }
 
   .card-search-form .primary-button {

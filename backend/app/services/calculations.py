@@ -4,7 +4,7 @@ from app.models import Asset, PriceSnapshot
 from app.schemas.calculations import AssetCalculationSummary
 
 
-def _latest_price_snapshot(asset: Asset) -> PriceSnapshot | None:
+def get_latest_price_snapshot(asset: Asset) -> PriceSnapshot | None:
     if not asset.price_snapshots:
         return None
 
@@ -23,7 +23,7 @@ def calculate_asset_summary(asset: Asset) -> AssetCalculationSummary:
         total_cost / total_quantity if total_quantity > 0 else None
     )
 
-    latest_snapshot = _latest_price_snapshot(asset)
+    latest_snapshot = get_latest_price_snapshot(asset)
     market_price_per_unit = (
         latest_snapshot.market_price_per_unit if latest_snapshot is not None else None
     )

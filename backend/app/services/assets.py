@@ -9,7 +9,10 @@ from app.models import (
     SealedProductMetadata,
 )
 from app.schemas.assets import AssetCreateRequest, AssetUpdateRequest
-from app.services.calculations import calculate_asset_summary
+from app.services.calculations import (
+    calculate_asset_summary,
+    get_latest_price_snapshot,
+)
 
 
 PLACEHOLDER_IMAGE_URL = "/static/placeholders/asset.svg"
@@ -37,6 +40,7 @@ def _with_derived_fields(asset: Asset) -> Asset:
         asset.card_metadata.image_url if asset.card_metadata is not None else None
     )
     asset.summary = calculate_asset_summary(asset)
+    asset.latest_price_snapshot = get_latest_price_snapshot(asset)
     asset.primary_image_url = (
         primary_image.url_or_path
         if primary_image is not None
