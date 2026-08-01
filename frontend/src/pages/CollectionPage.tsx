@@ -4,11 +4,13 @@ import { listAssets } from "../api/assets";
 import { getHealth } from "../api/health";
 import { ApiStatus } from "../components/ApiStatus";
 import { CollectionDashboard } from "../components/CollectionDashboard";
+import { usePortfolioPreferences } from "../hooks/usePortfolioPreferences";
 import type { AssetResponse } from "../types/assets";
 
 type ApiState = "loading" | "online" | "offline";
 
 export function CollectionPage() {
+  const { preferences } = usePortfolioPreferences();
   const [apiState, setApiState] = useState<ApiState>("loading");
   const [assets, setAssets] = useState<AssetResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +56,7 @@ export function CollectionPage() {
 
       <CollectionDashboard
         assets={assets}
+        initialFilter={preferences.defaultAssetTypeFilter}
         isLoading={isLoading}
         error={loadError}
         onRetry={() => void loadAssets()}

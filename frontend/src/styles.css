@@ -1822,3 +1822,63 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+.settings-panel {
+  max-width: 48rem;
+  padding: 1.5rem;
+}
+
+.settings-form,
+.settings-section {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.settings-section + .settings-section {
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e9e4;
+}
+
+.settings-section-description {
+  margin: 0.55rem 0 0;
+  color: #5a675f;
+  line-height: 1.6;
+}
+
+.settings-storage-note {
+  padding: 1rem;
+  border: 1px solid #d9e2dc;
+  border-radius: 0.7rem;
+  background: #f5f9f6;
+}
+
+.settings-storage-note h2 {
+  font-size: 1rem;
+}
+
+.settings-storage-note p {
+  margin: 0.45rem 0 0;
+  color: #5a675f;
+  line-height: 1.55;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 34rem) {
+  .settings-panel {
+    padding: 1rem;
+  }
+
+  .settings-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-actions button {
+    width: 100%;
+  }
+}

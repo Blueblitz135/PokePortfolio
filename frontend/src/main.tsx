@@ -3,12 +3,15 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
+import { PortfolioPreferencesProvider } from "./preferences/PortfolioPreferencesProvider";
 import "./styles.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <PortfolioPreferencesProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </PortfolioPreferencesProvider>
   </StrictMode>,
 );

@@ -5,7 +5,8 @@ import {
   getSealedProductTypeLabel,
   type AssetResponse,
 } from "../types/assets";
-import { formatCurrency, formatPercent } from "../utils/formatters";
+import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
+import { formatPercent } from "../utils/formatters";
 
 interface CollectionAssetCardProps {
   asset: AssetResponse;
@@ -70,6 +71,7 @@ export function CollectionAssetCard({
   asset,
   showDetailsLink = true,
 }: CollectionAssetCardProps) {
+  const formatCurrency = useCurrencyFormatter();
   const details = getAssetDetails(asset);
   const marketPriceUnavailable =
     asset.summary.market_price_per_unit === null;

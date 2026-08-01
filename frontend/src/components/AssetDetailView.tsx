@@ -5,7 +5,8 @@ import {
   getAssetTypeLabel,
   getSealedProductTypeLabel,
 } from "../types/assets";
-import { formatCurrency, formatPercent } from "../utils/formatters";
+import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
+import { formatPercent } from "../utils/formatters";
 import { AssetImageUpload } from "./AssetImageUpload";
 import { ManualPriceSnapshotForm } from "./ManualPriceSnapshotForm";
 import { PurchaseLotForm } from "./PurchaseLotForm";
@@ -197,6 +198,7 @@ export function AssetDetailView({
   asset,
   onRefresh,
 }: AssetDetailViewProps) {
+  const formatCurrency = useCurrencyFormatter();
   const metadata = getMetadata(asset);
   const profitLossClass = getPerformanceClass(asset.summary.profit_loss);
   const roiClass = getPerformanceClass(asset.summary.roi_percent);

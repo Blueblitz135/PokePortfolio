@@ -1,6 +1,6 @@
-import type { AssetType } from "../types/assets";
+import type { DefaultAssetTypeFilter } from "../preferences/portfolioPreferences";
 
-export type AssetFilter = "all" | AssetType;
+export type AssetFilter = DefaultAssetTypeFilter;
 
 interface AssetTypeFilterProps {
   selectedFilter: AssetFilter;

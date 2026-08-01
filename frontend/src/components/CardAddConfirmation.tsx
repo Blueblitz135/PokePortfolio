@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
 import type {
   CardAddDraft,
   CardSaveIssue,
@@ -9,7 +10,6 @@ import type {
 } from "../types/cardSearch";
 import { formatSearchCardNumber } from "../types/cardSearch";
 import { validatePurchaseLotDraft } from "../utils/cardAddValidation";
-import { formatCurrency } from "../utils/formatters";
 
 interface CardAddConfirmationProps {
   card: CardSearchResult;
@@ -46,6 +46,7 @@ export function CardAddConfirmation({
   onStartOver,
   onAmbiguousRetryChange,
 }: CardAddConfirmationProps) {
+  const formatCurrency = useCurrencyFormatter();
   const [recoveryDraft, setRecoveryDraft] = useState(draft);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
   const [hasCheckedPurchaseLots, setHasCheckedPurchaseLots] =

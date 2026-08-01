@@ -4,7 +4,7 @@ import {
   getSealedProductTypeLabel,
   type SealedProductAsset,
 } from "../types/assets";
-import { formatCurrency } from "../utils/formatters";
+import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
 
 interface SealedProductDetailProps {
   asset: SealedProductAsset | null;
@@ -30,6 +30,8 @@ export function SealedProductDetail({
   asset,
   onRefresh,
 }: SealedProductDetailProps) {
+  const formatCurrency = useCurrencyFormatter();
+
   if (!asset) {
     return (
       <section className="panel detail-panel empty-state">

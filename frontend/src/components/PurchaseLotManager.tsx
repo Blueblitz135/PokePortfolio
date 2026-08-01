@@ -10,8 +10,8 @@ import {
   deletePurchaseLot,
   updatePurchaseLot,
 } from "../api/assets";
+import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
 import type { PurchaseLot } from "../types/assets";
-import { formatCurrency } from "../utils/formatters";
 
 interface PurchaseLotManagerProps {
   assetName: string;
@@ -38,6 +38,7 @@ export function PurchaseLotManager({
   lots,
   onChanged,
 }: PurchaseLotManagerProps) {
+  const formatCurrency = useCurrencyFormatter();
   const sortedLots = useMemo(
     () =>
       [...lots].sort(

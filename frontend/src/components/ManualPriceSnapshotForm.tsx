@@ -1,8 +1,8 @@
 import { type FormEvent, useRef, useState } from "react";
 
 import { createManualPriceSnapshot } from "../api/assets";
+import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
 import type { PriceSnapshot } from "../types/assets";
-import { formatCurrency } from "../utils/formatters";
 
 interface ManualPriceSnapshotFormProps {
   assetId: number;
@@ -51,6 +51,7 @@ export function ManualPriceSnapshotForm({
   latestSnapshot,
   onSaved,
 }: ManualPriceSnapshotFormProps) {
+  const formatCurrency = useCurrencyFormatter();
   const [pricePerUnit, setPricePerUnit] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

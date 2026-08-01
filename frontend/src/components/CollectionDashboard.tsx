@@ -10,6 +10,7 @@ import { CollectionAssetCard } from "./CollectionAssetCard";
 
 interface CollectionDashboardProps {
   assets: AssetResponse[];
+  initialFilter: AssetFilter;
   isLoading: boolean;
   error: string | null;
   onRetry: () => void;
@@ -17,11 +18,14 @@ interface CollectionDashboardProps {
 
 export function CollectionDashboard({
   assets,
+  initialFilter,
   isLoading,
   error,
   onRetry,
 }: CollectionDashboardProps) {
-  const [selectedFilter, setSelectedFilter] = useState<AssetFilter>("all");
+  const [selectedFilter, setSelectedFilter] = useState<AssetFilter>(
+    () => initialFilter,
+  );
 
   const counts = useMemo<Record<AssetFilter, number>>(
     () => ({
