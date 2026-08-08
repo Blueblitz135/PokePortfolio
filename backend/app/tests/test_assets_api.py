@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -6,10 +7,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.adapters.justtcg import ExternalPriceQuote, JustTCGError
 from app.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.services import price_snapshots as price_snapshot_service
 
 
 engine = create_engine(
@@ -408,6 +411,115 @@ def test_manual_price_snapshot_requires_existing_asset() -> None:
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Asset 999 was not found."
+
+
+def test_justtcg_price_snapshot_persists_a_normalized_raw_card_quote(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    asset_id = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "raw_card",
+            "display_name": "Umbreon VMAX",
+            "card_metadata": {
+                "name": "Umbreon VMAX",
+                "set_name": "Evolving Skies",
+                "card_number": "215",
+                "set_total": "203",
+            },
+            "raw_details": {"condition": "NM"},
+        },
+    ).json()["id"]
+
+    class FakeAdapter:
+        async def fetch_raw_card_price(self, lookup):
+            assert lookup.name == "Umbreon VMAX"
+            assert lookup.set_name == "Evolving Skies"
+            assert lookup.card_number == "215"
+            assert lookup.condition.value == "NM"
+            return ExternalPriceQuote(
+                market_price_per_unit=Decimal("135.00"),
+                currency="CAD",
+                confidence=Decimal("0.700"),
+                observed_at=datetime(2025, 1, 2, tzinfo=timezone.utc),
+                metadata={"provider": "justtcg"},
+            )
+
+    monkeypatch.setattr(price_snapshot_service, "justtcg_adapter", FakeAdapter())
+
+    response = client.post(f"/api/assets/{asset_id}/price-snapshots/justtcg")
+
+    assert response.status_code == 201
+    assert response.json() == {
+        "id": 1,
+        "asset_id": asset_id,
+        "market_price_per_unit": "135.00",
+        "currency": "CAD",
+        "source": "justtcg",
+        "confidence": "0.700",
+        "observed_at": "2025-01-02T00:00:00",
+    }
+    assert client.get(f"/api/assets/{asset_id}").json()[
+        "latest_price_snapshot"
+    ] == response.json()
+
+
+def test_justtcg_price_snapshot_rejects_non_raw_assets() -> None:
+    asset_id = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "graded_card",
+            "display_name": "Umbreon VMAX PSA 10",
+            "card_metadata": {
+                "name": "Umbreon VMAX",
+                "set_name": "Evolving Skies",
+                "card_number": "215",
+                "set_total": "203",
+            },
+            "graded_details": {"grading_company": "PSA", "grade": "10"},
+        },
+    ).json()["id"]
+
+    response = client.post(f"/api/assets/{asset_id}/price-snapshots/justtcg")
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "JustTCG pricing currently supports raw cards only."
+    }
+
+
+def test_justtcg_price_snapshot_handles_provider_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    asset_id = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "raw_card",
+            "display_name": "Umbreon VMAX",
+            "card_metadata": {
+                "name": "Umbreon VMAX",
+                "set_name": "Evolving Skies",
+                "card_number": "215",
+                "set_total": "203",
+            },
+            "raw_details": {"condition": "NM"},
+        },
+    ).json()["id"]
+
+    class UnavailableAdapter:
+        async def fetch_raw_card_price(self, lookup):
+            raise JustTCGError("provider failed")
+
+    monkeypatch.setattr(
+        price_snapshot_service, "justtcg_adapter", UnavailableAdapter()
+    )
+
+    response = client.post(f"/api/assets/{asset_id}/price-snapshots/justtcg")
+
+    assert response.status_code == 502
+    assert response.json() == {
+        "detail": "JustTCG pricing is temporarily unavailable."
+    }
 
 
 @pytest.mark.parametrize(

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
@@ -15,6 +16,10 @@ class Settings(BaseSettings):
     tcgdex_base_url: str = "https://api.tcgdex.net/v2/en"
     tcgdex_timeout_seconds: float = 10.0
     tcgdex_search_limit: int = 20
+    justtcg_api_key: str | None = None
+    justtcg_base_url: str = "https://api.justtcg.com/v1"
+    justtcg_timeout_seconds: float = 10.0
+    justtcg_usd_to_cad_rate: Decimal | None = None
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
