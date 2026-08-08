@@ -65,14 +65,19 @@ untouched.
 
 ```powershell
 cd backend
-pytest
+.\.venv\Scripts\python.exe -m pytest
 ```
 
 ```powershell
 cd frontend
+npm test
 npm run lint
+npx tsc -b
 npm run build
 ```
+
+`npm test` runs the frontend unit and component tests once. Use `npm run
+test:watch` while developing frontend changes.
 
 ## Current scope
 
