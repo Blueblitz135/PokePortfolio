@@ -1,3 +1,6 @@
+/** Shared JSON request helpers and normalized API error handling. */
+
+/** Extract FastAPI string/list validation details with a status fallback. */
 async function getErrorMessage(response: Response): Promise<string> {
   try {
     const body = (await response.json()) as { detail?: unknown };
@@ -33,6 +36,7 @@ async function getErrorMessage(response: Response): Promise<string> {
 }
 
 export class ApiError extends Error {
+  /** HTTP failure that preserves status for workflow-specific recovery. */
   status: number;
 
   constructor(message: string, status: number) {
@@ -42,6 +46,7 @@ export class ApiError extends Error {
   }
 }
 
+/** Execute a request, throw a normalized error, and decode its JSON body. */
 export async function requestJson<T>(
   url: string,
   options?: RequestInit,
@@ -55,6 +60,7 @@ export async function requestJson<T>(
   return response.json() as Promise<T>;
 }
 
+/** Execute a request whose successful response intentionally has no body. */
 export async function requestNoContent(
   url: string,
   options?: RequestInit,

@@ -1,3 +1,4 @@
+/** List, create, edit, and delete the acquisition lots that determine ownership. */
 import {
   type FormEvent,
   useEffect,
@@ -19,6 +20,7 @@ interface PurchaseLotManagerProps {
   onChanged: () => Promise<void>;
 }
 
+/** Render an ISO purchase date without timezone shifting the calendar day. */
 function formatPurchaseDate(value: string): string {
   return new Date(`${value}T00:00:00`).toLocaleDateString("en-CA", {
     year: "numeric",
@@ -27,12 +29,14 @@ function formatPurchaseDate(value: string): string {
   });
 }
 
+/** Build an accessible summary of quantity and per-unit purchase price. */
 function getLotDescription(lot: PurchaseLot): string {
   return `${formatPurchaseDate(lot.purchase_date)}, ${lot.quantity} ${
     lot.quantity === 1 ? "unit" : "units"
   }`;
 }
 
+/** Coordinate lot CRUD forms and request a refreshed asset after mutations. */
 export function PurchaseLotManager({
   assetName,
   lots,
@@ -87,6 +91,7 @@ export function PurchaseLotManager({
     }
   }, [deleteLot]);
 
+  /** Restore keyboard focus to a lot's edit button after a modal-like action. */
   function focusEditButton(lotId: number) {
     window.requestAnimationFrame(() => {
       managerRef.current
@@ -95,6 +100,7 @@ export function PurchaseLotManager({
     });
   }
 
+  /** Populate the edit draft from a selected lot and clear prior feedback. */
   function startEditing(lot: PurchaseLot) {
     if (isMutating || needsRefresh) {
       return;
@@ -109,6 +115,7 @@ export function PurchaseLotManager({
     setPricePerUnit(lot.purchase_price_per_unit);
   }
 
+  /** Exit edit mode and restore focus to the initiating control. */
   function cancelEditing() {
     const lotId = editingLotId;
     setEditingLotId(null);
@@ -119,6 +126,7 @@ export function PurchaseLotManager({
     }
   }
 
+  /** Open delete confirmation for one lot and clear prior feedback. */
   function startDeleting(lot: PurchaseLot) {
     if (isMutating || needsRefresh) {
       return;
@@ -130,6 +138,7 @@ export function PurchaseLotManager({
     setDeleteLotId(lot.id);
   }
 
+  /** Exit delete confirmation and restore focus to the initiating control. */
   function cancelDeleting() {
     const lotId = deleteLotId;
     setDeleteLotId(null);
@@ -144,6 +153,7 @@ export function PurchaseLotManager({
     }
   }
 
+  /** Refresh the parent asset while distinguishing saved data from refresh errors. */
   async function refreshAfterMutation(
     successMessage: string,
     refreshFailureMessage: string,
@@ -158,6 +168,7 @@ export function PurchaseLotManager({
     }
   }
 
+  /** Validate and persist edits to the currently selected purchase lot. */
   async function handleEditSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (editingLot === null) {
@@ -195,6 +206,7 @@ export function PurchaseLotManager({
     focusEditButton(updatedLotId);
   }
 
+  /** Delete the selected lot and refresh the parent asset representation. */
   async function handleDelete() {
     if (deleteLot === null) {
       return;
@@ -228,6 +240,7 @@ export function PurchaseLotManager({
     });
   }
 
+  /** Retry a failed parent refresh without repeating the completed mutation. */
   async function handleRetryRefresh() {
     setIsMutating(true);
     setError(null);

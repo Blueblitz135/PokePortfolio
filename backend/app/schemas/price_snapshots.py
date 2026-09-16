@@ -1,3 +1,5 @@
+"""Validate manual price input and serialize persisted price observations."""
+
 from datetime import datetime
 from decimal import Decimal
 from typing import Literal
@@ -10,6 +12,8 @@ from app.services.currency import DEFAULT_CURRENCY, normalize_currency
 
 
 class PriceSnapshotCreateRequest(DomainSchema):
+    """User-entered market price; its source is always forced to manual."""
+
     model_config = ConfigDict(extra="forbid")
 
     market_price_per_unit: Decimal = Field(
@@ -24,12 +28,16 @@ class PriceSnapshotCreateRequest(DomainSchema):
     @field_validator("currency", mode="before")
     @classmethod
     def normalize_currency_code(cls, value: object) -> object:
+        """Canonicalize the currency before restricting it to CAD."""
+
         if isinstance(value, str):
             return normalize_currency(value)
         return value
 
 
 class PriceSnapshotResponse(DomainSchema):
+    """Stored normalized price with provider metadata when available."""
+
     id: int
     asset_id: int
     market_price_per_unit: Decimal

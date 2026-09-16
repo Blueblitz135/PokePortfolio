@@ -1,3 +1,4 @@
+/** Create an upload-first sealed-product asset using manually entered metadata. */
 import { type FormEvent, useState } from "react";
 
 import { createSealedProduct } from "../api/assets";
@@ -12,6 +13,7 @@ interface SealedProductFormProps {
   onCreated: (asset: SealedProductAsset) => void;
 }
 
+/** Validate sealed metadata, persist the asset, and report the new identifier. */
 export function SealedProductForm({ onCreated }: SealedProductFormProps) {
   const [productName, setProductName] = useState("");
   const [setName, setSetName] = useState("");
@@ -25,6 +27,7 @@ export function SealedProductForm({ onCreated }: SealedProductFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  /** Validate form fields, create the asset, and clear the form on success. */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);

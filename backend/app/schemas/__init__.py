@@ -1,3 +1,5 @@
+"""Re-export commonly used schema classes through one import surface."""
+
 from app.schemas.assets import AssetCreateRequest, AssetResponse, AssetUpdateRequest
 from app.schemas.asset_images import AssetImageResponse
 from app.schemas.calculations import AssetCalculationSummary

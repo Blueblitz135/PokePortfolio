@@ -1,3 +1,5 @@
+"""Define the persisted portfolio entities and their SQLAlchemy relationships."""
+
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
@@ -34,14 +36,20 @@ from app.models.enums import (
 
 
 def utc_now() -> datetime:
+    """Return a timezone-aware UTC timestamp for model defaults."""
+
     return datetime.now(timezone.utc)
 
 
 def enum_values(enum_class: type[Enum]) -> list[str]:
+    """Persist each string enum's public value rather than its Python member name."""
+
     return [str(member.value) for member in enum_class]
 
 
 class Asset(Base):
+    """Root holding identity shared by raw cards, graded cards, and sealed products."""
+
     __tablename__ = "assets"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -90,6 +98,8 @@ class Asset(Base):
 
 
 class CardMetadata(Base):
+    """One-to-one card identity and catalog metadata for raw or graded assets."""
+
     __tablename__ = "card_metadata"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -122,6 +132,8 @@ class CardMetadata(Base):
 
 
 class RawCardDetails(Base):
+    """One-to-one raw-card attributes kept separate from shared card metadata."""
+
     __tablename__ = "raw_card_details"
 
     asset_id: Mapped[int] = mapped_column(
@@ -142,6 +154,8 @@ class RawCardDetails(Base):
 
 
 class GradedCardDetails(Base):
+    """One-to-one slab grade and certification details for a graded card asset."""
+
     __tablename__ = "graded_card_details"
     __table_args__ = (
         CheckConstraint("grade > 0 AND grade <= 10", name="valid_grade"),
@@ -167,6 +181,8 @@ class GradedCardDetails(Base):
 
 
 class SealedProductMetadata(Base):
+    """One-to-one product identity for assets that remain factory sealed."""
+
     __tablename__ = "sealed_product_metadata"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -203,6 +219,8 @@ class SealedProductMetadata(Base):
 
 
 class PurchaseLot(Base):
+    """A dated acquisition of one or more units at a per-unit cost."""
+
     __tablename__ = "purchase_lots"
     __table_args__ = (
         CheckConstraint("quantity > 0", name="positive_purchase_quantity"),
@@ -234,6 +252,8 @@ class PurchaseLot(Base):
 
 
 class AssetImage(Base):
+    """Provider or uploaded image associated with an asset."""
+
     __tablename__ = "asset_images"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -262,6 +282,8 @@ class AssetImage(Base):
 
 
 class PriceSnapshot(Base):
+    """A point-in-time, per-unit market value normalized to portfolio currency."""
+
     __tablename__ = "price_snapshots"
     __table_args__ = (
         CheckConstraint(

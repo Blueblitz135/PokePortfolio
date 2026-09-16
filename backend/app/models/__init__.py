@@ -1,3 +1,5 @@
+"""Re-export model classes and enums through a stable application import surface."""
+
 from app.models.domain import (
     Asset,
     AssetImage,

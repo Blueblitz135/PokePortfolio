@@ -1,3 +1,4 @@
+/** Collect raw/graded ownership details for a selected card search result. */
 import { type FormEvent, useState } from "react";
 
 import type {
@@ -30,6 +31,7 @@ const GRADING_COMPANIES: ReadonlyArray<GradingCompany> = [
   "OTHER",
 ];
 
+/** Return today's local calendar date in input-compatible YYYY-MM-DD form. */
 function getToday(): string {
   const today = new Date();
   const year = today.getFullYear();
@@ -38,6 +40,7 @@ function getToday(): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Build a fresh form draft with sensible raw-card and optional-lot defaults. */
 function createDefaultDraft(): CardAddDraft {
   return {
     assetType: "raw_card",
@@ -59,6 +62,7 @@ interface AddSearchedCardFormProps {
   onCancel: () => void;
 }
 
+/** Validate ownership input and advance the parent workflow to confirmation. */
 export function AddSearchedCardForm({
   card,
   initialDraft,
@@ -70,6 +74,7 @@ export function AddSearchedCardForm({
   );
   const [error, setError] = useState<string | null>(null);
 
+  /** Update one draft field while retaining the rest of the form state. */
   function updateDraft<K extends keyof CardAddDraft>(
     field: K,
     value: CardAddDraft[K],
@@ -78,6 +83,7 @@ export function AddSearchedCardForm({
     setError(null);
   }
 
+  /** Validate the current draft and hand valid data to the review stage. */
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const validationError = validateCardAddDraft(draft);

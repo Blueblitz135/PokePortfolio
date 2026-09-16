@@ -1,3 +1,4 @@
+/** Display category-separated cost, value, and return summaries. */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -16,6 +17,7 @@ interface CollectionDashboardProps {
   onRetry: () => void;
 }
 
+/** Aggregate visible assets by type without mixing category performance. */
 export function CollectionDashboard({
   assets,
   initialFilter,

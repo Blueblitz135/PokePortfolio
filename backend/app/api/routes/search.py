@@ -1,3 +1,5 @@
+"""Expose normalized external card-metadata search results."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -13,6 +15,8 @@ router = APIRouter(prefix="/search", tags=["search"])
 async def search_cards(
     q: Annotated[str, Query(min_length=1, max_length=100)],
 ) -> list[CardSearchResult]:
+    """Search TCGdex through the card-search service and map outages to HTTP 502."""
+
     query = q.strip()
     if not query:
         raise HTTPException(

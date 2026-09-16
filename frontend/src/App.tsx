@@ -1,3 +1,4 @@
+/** Declare client-side routes inside the shared application shell. */
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppShell } from "./components/AppShell";
@@ -8,6 +9,7 @@ import { SearchPage } from "./pages/SearchPage";
 import { SealedProductsPage } from "./pages/SealedProductsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 
+/** Render the portfolio page router and fallback route. */
 export default function App() {
   return (
     <Routes>

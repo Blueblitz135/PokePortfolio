@@ -1,3 +1,4 @@
+/** Own, persist, and distribute portfolio display preferences to the React tree. */
 import {
   useCallback,
   useMemo,
@@ -18,6 +19,7 @@ interface PortfolioPreferencesProviderProps {
   children: ReactNode;
 }
 
+/** Initialize preferences once and expose memoized save/reset operations. */
 export function PortfolioPreferencesProvider({
   children,
 }: PortfolioPreferencesProviderProps) {

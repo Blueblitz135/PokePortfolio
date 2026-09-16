@@ -1,3 +1,4 @@
+/** Provide shared navigation, responsive sidebar behavior, and routed page content. */
 import {
   useCallback,
   useEffect,
@@ -20,6 +21,7 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
+/** Find keyboard-focusable visible descendants for the mobile focus trap. */
 function getVisibleFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(
     container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
@@ -29,6 +31,7 @@ function getVisibleFocusableElements(container: HTMLElement): HTMLElement[] {
   );
 }
 
+/** Coordinate desktop/mobile navigation, focus restoration, and nested routes. */
 export function AppShell() {
   const location = useLocation();
   const isMobile = useMediaQuery(MOBILE_SIDEBAR_QUERY);
@@ -51,6 +54,7 @@ export function AppShell() {
     setIsMobileOpen(false);
   }, []);
 
+  /** Open mobile navigation while remembering where keyboard focus began. */
   function openMobileSidebar() {
     restoreMenuFocusRef.current = false;
     setIsMobileOpen(true);
@@ -103,6 +107,7 @@ export function AppShell() {
   }, [isMobile, isMobileOpen]);
 
   useEffect(() => {
+    /** Remember whether focus last belonged to navigation or main content. */
     function trackFocusedRegion(event: FocusEvent) {
       if (!(event.target instanceof Node)) {
         return;
@@ -160,6 +165,7 @@ export function AppShell() {
       return;
     }
 
+    /** Close on Escape and cycle Tab focus within the open mobile drawer. */
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();

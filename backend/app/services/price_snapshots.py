@@ -1,3 +1,5 @@
+"""Create manual or provider-backed market price observations for assets."""
+
 from app.adapters.justtcg import (
     JustTCGAdapter,
     JustTCGConfigurationError,
@@ -31,6 +33,8 @@ justtcg_adapter = JustTCGAdapter(
 def create_manual_price_snapshot(
     db: Session, asset_id: int, data: PriceSnapshotCreateRequest
 ) -> PriceSnapshot:
+    """Persist a CAD market value supplied directly by the user."""
+
     asset_service.get_asset(db, asset_id)
 
     price_snapshot = PriceSnapshot(
@@ -49,6 +53,8 @@ def create_manual_price_snapshot(
 async def create_justtcg_price_snapshot(
     db: Session, asset_id: int
 ) -> PriceSnapshot:
+    """Fetch and persist an exact-condition JustTCG quote for a raw card."""
+
     asset = asset_service.get_asset(db, asset_id)
     if asset.asset_type != AssetType.RAW_CARD:
         raise ExternalPriceNotSupportedError(
@@ -65,6 +71,8 @@ async def create_justtcg_price_snapshot(
             set_name=asset.card_metadata.set_name,
             card_number=asset.card_metadata.card_number,
             condition=asset.raw_card_details.condition,
+            set_total=asset.card_metadata.set_total,
+            printing=asset.card_metadata.variant,
         )
     )
     if quote is None:

@@ -1,3 +1,5 @@
+"""Implement asset persistence, eager loading, and response-only derived fields."""
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -19,10 +21,14 @@ PLACEHOLDER_IMAGE_URL = "/static/placeholders/asset.svg"
 
 
 class AssetNotFoundError(Exception):
+    """Raised when an asset identifier does not exist."""
+
     pass
 
 
 def _asset_query():
+    """Build the shared eager-loading query used by asset reads."""
+
     return select(Asset).options(
         selectinload(Asset.card_metadata),
         selectinload(Asset.raw_card_details),
@@ -35,6 +41,8 @@ def _asset_query():
 
 
 def _with_derived_fields(asset: Asset) -> Asset:
+    """Attach summary, latest price, and preferred image fields for serialization."""
+
     primary_image = next((image for image in asset.images if image.is_primary), None)
     card_metadata_image = (
         asset.card_metadata.image_url if asset.card_metadata is not None else None
@@ -50,6 +58,8 @@ def _with_derived_fields(asset: Asset) -> Asset:
 
 
 def create_asset(db: Session, data: AssetCreateRequest) -> Asset:
+    """Persist an asset with only the metadata allowed for its validated type."""
+
     asset = Asset(
         asset_type=data.asset_type,
         display_name=data.display_name,
@@ -75,11 +85,15 @@ def create_asset(db: Session, data: AssetCreateRequest) -> Asset:
 
 
 def list_assets(db: Session) -> list[Asset]:
+    """Return all assets in stable insertion order with derived fields populated."""
+
     result = db.scalars(_asset_query().order_by(Asset.id))
     return [_with_derived_fields(asset) for asset in result.all()]
 
 
 def get_asset(db: Session, asset_id: int) -> Asset:
+    """Return a hydrated asset or raise AssetNotFoundError."""
+
     asset = db.scalar(_asset_query().where(Asset.id == asset_id))
     if asset is None:
         raise AssetNotFoundError
@@ -87,6 +101,8 @@ def get_asset(db: Session, asset_id: int) -> Asset:
 
 
 def update_asset(db: Session, asset_id: int, data: AssetUpdateRequest) -> Asset:
+    """Apply explicitly supplied editable fields and return the refreshed asset."""
+
     asset = get_asset(db, asset_id)
     update_data = data.model_dump(exclude_unset=True)
 
@@ -98,6 +114,8 @@ def update_asset(db: Session, asset_id: int, data: AssetUpdateRequest) -> Asset:
 
 
 def delete_asset(db: Session, asset_id: int) -> None:
+    """Delete an asset; ORM cascades remove its dependent records."""
+
     asset = get_asset(db, asset_id)
     db.delete(asset)
     db.commit()

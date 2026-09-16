@@ -1,3 +1,4 @@
+/** Typed HTTP operations for assets and their nested portfolio records. */
 import type {
   AssetCreatePayload,
   AssetImage,
@@ -11,14 +12,26 @@ import type {
 } from "../types/assets";
 import { requestJson, requestNoContent } from "./client";
 
+/** Fetch every hydrated portfolio asset. */
 export function listAssets(): Promise<AssetResponse[]> {
   return requestJson<AssetResponse[]>("/api/assets");
 }
 
+/** Fetch current card prices and recompute all collection values. */
+export function refreshMarketPrices(): Promise<AssetResponse[]> {
+  return requestJson<AssetResponse[]>("/api/assets/refresh-prices", { method: "POST" });
+}
+
+export function refreshAssetPrice(assetId: number): Promise<AssetResponse> {
+  return requestJson<AssetResponse>(`/api/assets/${assetId}/refresh-price`, { method: "POST" });
+}
+
+/** Fetch one hydrated asset by database identifier. */
 export function getAsset(assetId: number): Promise<AssetResponse> {
   return requestJson<AssetResponse>(`/api/assets/${assetId}`);
 }
 
+/** Create a raw, graded, or sealed asset using its discriminated payload. */
 export function createAsset(
   payload: AssetCreatePayload,
 ): Promise<AssetResponse> {
@@ -29,12 +42,14 @@ export function createAsset(
   });
 }
 
+/** Convenience wrapper for creating a sealed-product asset. */
 export function createSealedProduct(
   payload: SealedProductCreatePayload,
 ): Promise<AssetResponse> {
   return createAsset(payload);
 }
 
+/** Record another acquisition lot beneath an asset. */
 export function createPurchaseLot(
   assetId: number,
   payload: PurchaseLotCreatePayload,
@@ -46,6 +61,7 @@ export function createPurchaseLot(
   });
 }
 
+/** Partially update a purchase lot. */
 export function updatePurchaseLot(
   lotId: number,
   payload: PurchaseLotUpdatePayload,
@@ -57,12 +73,14 @@ export function updatePurchaseLot(
   });
 }
 
+/** Delete one purchase lot. */
 export function deletePurchaseLot(lotId: number): Promise<void> {
   return requestNoContent(`/api/purchase-lots/${lotId}`, {
     method: "DELETE",
   });
 }
 
+/** Save a user-entered market price against an asset. */
 export function createManualPriceSnapshot(
   assetId: number,
   payload: ManualPriceSnapshotCreatePayload,
@@ -77,6 +95,7 @@ export function createManualPriceSnapshot(
   );
 }
 
+/** Upload an image as multipart form data and optionally make it primary. */
 export function uploadAssetImage(
   assetId: number,
   file: File,

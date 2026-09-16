@@ -1,3 +1,4 @@
+/** Primary desktop/mobile navigation and lightweight inline icon set. */
 import type { RefObject } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -23,6 +24,7 @@ const NAV_ITEMS: ReadonlyArray<{
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
 
+/** Render the decorative SVG associated with a navigation destination. */
 function SidebarIcon({ name }: { name: SidebarIconName }) {
   if (name === "collection") {
     return (
@@ -67,6 +69,7 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
   );
 }
 
+/** Render navigation links and optional mobile close controls. */
 export function Sidebar({
   isCollapsed,
   isMobile,
@@ -79,6 +82,7 @@ export function Sidebar({
   const location = useLocation();
   const showFullSidebar = isMobile || !isCollapsed;
 
+  /** Match exact routes and their nested detail paths for active-link styling. */
   function isCurrentNavigationItem(path: string) {
     if (path === "/collection") {
       return (

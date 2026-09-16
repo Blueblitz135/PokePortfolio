@@ -1,5 +1,7 @@
+/** Reactively expose whether a browser media query currently matches. */
 import { useEffect, useState } from "react";
 
+/** Subscribe to matchMedia changes and clean up the listener on unmount. */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(
     () => window.matchMedia(query).matches,

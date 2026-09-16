@@ -1,3 +1,5 @@
+"""Response schema for quantity, cost basis, value, and return calculations."""
+
 from decimal import Decimal
 
 from app.schemas.domain import CurrencyCode, DomainSchema
@@ -5,6 +7,8 @@ from app.services.currency import DEFAULT_CURRENCY
 
 
 class AssetCalculationSummary(DomainSchema):
+    """Derived performance fields for one asset in normalized currency."""
+
     currency: CurrencyCode = DEFAULT_CURRENCY
     total_quantity: int
     total_cost: Decimal

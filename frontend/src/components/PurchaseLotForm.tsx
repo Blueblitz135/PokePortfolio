@@ -1,3 +1,4 @@
+/** Collect and validate a new acquisition lot for an existing asset. */
 import { type FormEvent, useState } from "react";
 
 import { createPurchaseLot } from "../api/assets";
@@ -7,6 +8,7 @@ interface PurchaseLotFormProps {
   onSaved: () => Promise<void>;
 }
 
+/** Return today's local calendar date in input-compatible YYYY-MM-DD form. */
 function getToday(): string {
   const today = new Date();
   const year = today.getFullYear();
@@ -15,6 +17,7 @@ function getToday(): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Submit a CAD lot and notify the parent after persistence succeeds. */
 export function PurchaseLotForm({
   assetId,
   onSaved,
@@ -27,6 +30,7 @@ export function PurchaseLotForm({
   const [success, setSuccess] = useState<string | null>(null);
   const [needsRefresh, setNeedsRefresh] = useState(false);
 
+  /** Validate and save a new lot before requesting refreshed asset data. */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
@@ -68,6 +72,7 @@ export function PurchaseLotForm({
     setIsSubmitting(false);
   }
 
+  /** Retry only the parent refresh after a lot was already persisted. */
   async function handleRetryRefresh() {
     setIsSubmitting(true);
     setError(null);

@@ -1,3 +1,4 @@
+/** Load, create, select, and refresh sealed-product assets. */
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -14,6 +15,7 @@ import {
 
 type ApiState = "loading" | "online" | "offline";
 
+/** Coordinate sealed-product list and detail views with backend status states. */
 export function SealedProductsPage() {
   const [apiState, setApiState] = useState<ApiState>("loading");
   const [sealedProducts, setSealedProducts] = useState<SealedProductAsset[]>([]);
@@ -54,12 +56,14 @@ export function SealedProductsPage() {
     void loadSealedProducts();
   }, [loadSealedProducts]);
 
+  /** Insert and select a newly created sealed product without a full reload. */
   function handleCreated(asset: SealedProductAsset) {
     setSealedProducts((currentAssets) => [...currentAssets, asset]);
     setSelectedAssetId(asset.id);
     setLoadError(null);
   }
 
+  /** Reload one selected asset after a nested lot, price, or image mutation. */
   async function refreshAsset(assetId: number) {
     const refreshedAsset = await getAsset(assetId);
 

@@ -1,3 +1,5 @@
+"""Implement purchase-lot creation, lookup, partial update, and deletion."""
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,12 +12,16 @@ from app.services.assets import get_asset
 
 
 class PurchaseLotNotFoundError(Exception):
+    """Raised when a purchase-lot identifier does not exist."""
+
     pass
 
 
 def create_purchase_lot(
     db: Session, asset_id: int, data: PurchaseLotCreateRequest
 ) -> PurchaseLot:
+    """Create a dated acquisition under an existing asset."""
+
     get_asset(db, asset_id)
     purchase_lot = PurchaseLot(asset_id=asset_id, **data.model_dump())
 
@@ -26,6 +32,8 @@ def create_purchase_lot(
 
 
 def get_purchase_lot(db: Session, lot_id: int) -> PurchaseLot:
+    """Return one purchase lot or raise PurchaseLotNotFoundError."""
+
     purchase_lot = db.scalar(select(PurchaseLot).where(PurchaseLot.id == lot_id))
     if purchase_lot is None:
         raise PurchaseLotNotFoundError
@@ -35,6 +43,8 @@ def get_purchase_lot(db: Session, lot_id: int) -> PurchaseLot:
 def update_purchase_lot(
     db: Session, lot_id: int, data: PurchaseLotUpdateRequest
 ) -> PurchaseLot:
+    """Apply explicitly supplied editable fields to an existing purchase lot."""
+
     purchase_lot = get_purchase_lot(db, lot_id)
     update_data = data.model_dump(exclude_unset=True)
 
@@ -47,6 +57,8 @@ def update_purchase_lot(
 
 
 def delete_purchase_lot(db: Session, lot_id: int) -> None:
+    """Delete one existing purchase lot."""
+
     purchase_lot = get_purchase_lot(db, lot_id)
     db.delete(purchase_lot)
     db.commit()

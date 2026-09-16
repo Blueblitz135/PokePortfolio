@@ -1,3 +1,5 @@
+"""Validate image uploads, store files safely, and manage primary image records."""
+
 from pathlib import Path
 from uuid import uuid4
 
@@ -19,14 +21,20 @@ UPLOAD_URL_PREFIX = "/uploads"
 
 
 class InvalidImageError(Exception):
+    """Raised when an upload's extension, MIME type, or signature is invalid."""
+
     pass
 
 
 class ImageTooLargeError(Exception):
+    """Raised when an upload exceeds the configured byte limit."""
+
     pass
 
 
 def _has_valid_signature(extension: str, content: bytes) -> bool:
+    """Confirm that leading bytes match the claimed supported image format."""
+
     if extension in {".jpg", ".jpeg"}:
         return content.startswith(b"\xff\xd8\xff")
     if extension == ".png":
@@ -41,6 +49,8 @@ def _has_valid_signature(extension: str, content: bytes) -> bool:
 
 
 async def _validate_and_read(file: UploadFile) -> tuple[str, bytes]:
+    """Read at most the allowed size and validate extension, MIME type, and bytes."""
+
     extension = Path(file.filename or "").suffix.lower()
     allowed_content_types = ALLOWED_CONTENT_TYPES.get(extension)
 
@@ -63,6 +73,8 @@ async def create_asset_image(
     file: UploadFile,
     is_primary: bool,
 ) -> AssetImage:
+    """Store an uploaded file and atomically register it against an asset."""
+
     asset = asset_service.get_asset(db, asset_id)
     extension, content = await _validate_and_read(file)
 
@@ -75,6 +87,8 @@ async def create_asset_image(
 
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
 
+    # If persistence fails after the file is written, roll back both database and
+    # filesystem state so an orphaned upload is not left behind.
     try:
         stored_path.write_bytes(content)
         if should_be_primary:
@@ -98,5 +112,7 @@ async def create_asset_image(
 
 
 def list_asset_images(db: Session, asset_id: int) -> list[AssetImage]:
+    """Return an existing asset's image records in deterministic ID order."""
+
     asset = asset_service.get_asset(db, asset_id)
     return sorted(asset.images, key=lambda image: image.id)

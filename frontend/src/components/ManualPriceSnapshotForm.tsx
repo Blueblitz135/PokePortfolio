@@ -1,3 +1,4 @@
+/** Add user-entered CAD price observations and display saved price history. */
 import { type FormEvent, useRef, useState } from "react";
 
 import { createManualPriceSnapshot } from "../api/assets";
@@ -12,6 +13,7 @@ interface ManualPriceSnapshotFormProps {
 
 const cadAmountPattern = /^(?:\d{1,10}(?:\.\d{1,2})?|\.\d{1,2})$/;
 
+/** Require a non-negative monetary value with at most two decimal places. */
 function validatePrice(value: string): string | null {
   if (!cadAmountPattern.test(value.trim())) {
     return "Enter a price from 0 to 9,999,999,999.99 with no more than 2 decimal places.";
@@ -20,6 +22,7 @@ function validatePrice(value: string): string | null {
   return null;
 }
 
+/** Render provider timestamps in the user's local date/time format. */
 function formatObservedAt(value: string): string {
   const hasTimeZone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(value);
   const observedAt = new Date(hasTimeZone ? value : `${value}Z`);
@@ -34,6 +37,7 @@ function formatObservedAt(value: string): string {
   }).format(observedAt);
 }
 
+/** Present optional zero-to-one confidence as a rounded percentage. */
 function formatConfidence(value: string | null): string {
   if (value === null) {
     return "Not available";
@@ -46,6 +50,7 @@ function formatConfidence(value: string | null): string {
     : "Not available";
 }
 
+/** Manage snapshot validation, persistence, feedback, and history rendering. */
 export function ManualPriceSnapshotForm({
   assetId,
   latestSnapshot,
@@ -59,6 +64,7 @@ export function ManualPriceSnapshotForm({
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const submissionInProgress = useRef(false);
 
+  /** Validate and save the price before requesting refreshed asset data. */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -114,6 +120,7 @@ export function ManualPriceSnapshotForm({
     }
   }
 
+  /** Retry only the parent refresh after a snapshot was already persisted. */
   async function handleRetryRefresh() {
     if (submissionInProgress.current) {
       return;

@@ -1,8 +1,10 @@
+/** Versioned parsing and local-storage persistence for user display preferences. */
 import {
   DEFAULT_CURRENCY,
   type CurrencyCode,
 } from "../types/currency";
 
+/** Increment when the serialized preference shape requires migration. */
 export const PREFERENCES_VERSION = 1 as const;
 export const PORTFOLIO_PREFERENCES_STORAGE_KEY =
   "pokemonPortfolio.preferences.v1";
@@ -39,18 +41,22 @@ export interface PortfolioPreferencesReadResult {
   storageAvailable: boolean;
 }
 
+/** Return a fresh default object so callers cannot mutate the shared constant. */
 function defaultPreferences(): PortfolioPreferences {
   return { ...DEFAULT_PORTFOLIO_PREFERENCES };
 }
 
+/** Narrow arbitrary parsed JSON to a non-array object. */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Validate display currency against the MVP's supported values. */
 function isSupportedDisplayCurrency(value: unknown): value is CurrencyCode {
   return value === DEFAULT_CURRENCY;
 }
 
+/** Validate the stored collection filter against known choices. */
 function isSupportedDefaultAssetTypeFilter(
   value: unknown,
 ): value is DefaultAssetTypeFilter {
@@ -59,6 +65,7 @@ function isSupportedDefaultAssetTypeFilter(
   );
 }
 
+/** Sanitize unknown storage data, falling back per field instead of throwing. */
 export function parsePortfolioPreferences(value: unknown): PortfolioPreferences {
   if (!isRecord(value) || value.version !== PREFERENCES_VERSION) {
     return defaultPreferences();
@@ -77,6 +84,7 @@ export function parsePortfolioPreferences(value: unknown): PortfolioPreferences 
   };
 }
 
+/** Parse serialized preferences and recover safely from malformed JSON. */
 export function deserializePortfolioPreferences(
   serializedPreferences: string | null,
 ): PortfolioPreferences {
@@ -91,6 +99,7 @@ export function deserializePortfolioPreferences(
   }
 }
 
+/** Return browser localStorage when accessible, otherwise report no persistence. */
 export function getPortfolioPreferencesStorage(): PortfolioPreferencesStorage | null {
   if (typeof window === "undefined") {
     return null;
@@ -103,6 +112,7 @@ export function getPortfolioPreferencesStorage(): PortfolioPreferencesStorage | 
   }
 }
 
+/** Read and validate preferences while reporting storage availability. */
 export function readPortfolioPreferences(
   storage: PortfolioPreferencesStorage | null =
     getPortfolioPreferencesStorage(),
@@ -129,6 +139,7 @@ export function readPortfolioPreferences(
   }
 }
 
+/** Persist a sanitized preference document and report whether it succeeded. */
 export function writePortfolioPreferences(
   preferences: PortfolioPreferences,
   storage: PortfolioPreferencesStorage | null =

@@ -1,3 +1,4 @@
+/** Reusable scaffold for navigation destinations without implemented content. */
 interface PlaceholderPageProps {
   eyebrow: string;
   title: string;
@@ -5,6 +6,7 @@ interface PlaceholderPageProps {
   message: string;
 }
 
+/** Render a titled placeholder with a brief scope explanation. */
 export function PlaceholderPage({
   eyebrow,
   title,

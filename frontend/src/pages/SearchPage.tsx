@@ -1,3 +1,4 @@
+/** Coordinate the card search, ownership details, confirmation, and save workflow. */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -22,6 +23,7 @@ import {
 
 type WorkflowStage = "results" | "details" | "confirmation";
 
+/** Distinguish intentional stale-request cancellation from real search failures. */
 function isAbortError(error: unknown): boolean {
   return (
     typeof error === "object" &&
@@ -31,6 +33,7 @@ function isAbortError(error: unknown): boolean {
   );
 }
 
+/** Convert an asset-create failure into recovery guidance for the UI. */
 function assetCreationIssue(error: unknown): CardSaveIssue {
   if (
     error instanceof ApiError &&
@@ -51,6 +54,7 @@ function assetCreationIssue(error: unknown): CardSaveIssue {
   };
 }
 
+/** Explain second-step lot failures without hiding a successfully saved asset. */
 function purchaseLotIssue(error: unknown): CardSaveIssue {
   if (
     error instanceof ApiError &&
@@ -71,6 +75,7 @@ function purchaseLotIssue(error: unknown): CardSaveIssue {
   };
 }
 
+/** Manage the staged search-to-collection state machine and API requests. */
 export function SearchPage() {
   const [query, setQuery] = useState("");
   const [queryError, setQueryError] = useState<string | null>(null);
@@ -102,6 +107,7 @@ export function SearchPage() {
     [],
   );
 
+  /** Reset the selected card and staged ownership workflow. */
   function clearCardWorkflow() {
     selectedCardRef.current = null;
     setSelectedCard(null);
@@ -113,6 +119,7 @@ export function SearchPage() {
     setAmbiguousRetryConfirmed(false);
   }
 
+  /** Abort the in-flight request so stale results cannot replace newer state. */
   function cancelActiveSearch() {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
@@ -120,6 +127,7 @@ export function SearchPage() {
     setIsSearching(false);
   }
 
+  /** Execute a cancellable search and transition to explicit result states. */
   async function runSearch(searchQuery: string) {
     cancelActiveSearch();
     const normalizedQuery = searchQuery.trim();
@@ -197,6 +205,7 @@ export function SearchPage() {
     }
   }
 
+  /** Select a result and advance to ownership-detail entry. */
   function handleSelectCard(card: CardSearchResult) {
     selectedCardRef.current = card;
     setSelectedCard(card);
@@ -211,6 +220,7 @@ export function SearchPage() {
     });
   }
 
+  /** Save validated ownership details and advance to confirmation. */
   function handleReview(nextDraft: CardAddDraft) {
     cancelActiveSearch();
     setDraft(nextDraft);
@@ -224,6 +234,7 @@ export function SearchPage() {
     });
   }
 
+  /** Create the asset, then its optional first lot, tracking partial success. */
   async function handleConfirm() {
     if (
       selectedCard === null ||
@@ -272,6 +283,7 @@ export function SearchPage() {
     }
   }
 
+  /** Retry only the lot request after the asset has already been created. */
   async function handleRetryPurchaseLot(updatedDraft: CardAddDraft) {
     if (
       createdAssetId === null ||

@@ -1,3 +1,4 @@
+/** Summarize one asset's identity, quantity, value, and performance in a card. */
 import { Link } from "react-router-dom";
 
 import {
@@ -13,6 +14,7 @@ interface CollectionAssetCardProps {
   showDetailsLink?: boolean;
 }
 
+/** Format structured card identifiers without placing them in the asset title. */
 function formatCardNumber(asset: AssetResponse): string | null {
   const metadata = asset.card_metadata;
 
@@ -25,6 +27,7 @@ function formatCardNumber(asset: AssetResponse): string | null {
     : metadata.card_number;
 }
 
+/** Select concise type-specific metadata for the collection grid. */
 function getAssetDetails(asset: AssetResponse): string[] {
   if (asset.asset_type === "raw_card") {
     return [
@@ -54,6 +57,7 @@ function getAssetDetails(asset: AssetResponse): string[] {
   ].filter((value): value is string => Boolean(value));
 }
 
+/** Map signed performance to positive, negative, or neutral styling. */
 function getPerformanceClass(value: string | null): string {
   if (value === null) {
     return "";
@@ -66,6 +70,9 @@ function getPerformanceClass(value: string | null): string {
 
   return amount > 0 ? "metric-value--positive" : "metric-value--negative";
 }
+
+/** Render an asset summary linked to its full detail page. */
+import { MarketPriceEvidence } from "./MarketPriceEvidence";
 
 export function CollectionAssetCard({
   asset,
@@ -175,6 +182,7 @@ export function CollectionAssetCard({
         </p>
       )}
 
+      <MarketPriceEvidence asset={asset} />
       {showDetailsLink && (
         <Link className="card-action" to={`/assets/${asset.id}`}>
           Open asset details <span aria-hidden="true">→</span>

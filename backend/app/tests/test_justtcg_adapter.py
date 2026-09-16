@@ -31,8 +31,8 @@ def test_adapter_normalizes_exact_raw_card_price_to_cad() -> None:
         assert request.url.path == "/v1/cards"
         assert request.headers["x-api-key"] == "test-key"
         assert dict(request.url.params) == {
-            "query": "Umbreon VMAX",
-            "game": "Pokemon",
+            "q": "Umbreon VMAX",
+            "game": "pokemon",
             "number": "215",
             "condition": "NM",
             "limit": "20",
@@ -133,3 +133,46 @@ def test_adapter_requires_an_api_key_and_conversion_rate() -> None:
 
     with pytest.raises(JustTCGConfigurationError):
         _fetch(adapter)
+
+
+def test_adapter_returns_price_history_in_cad() -> None:
+    def handle_request(request: httpx.Request) -> httpx.Response:
+        assert request.url.params["priceHistoryDuration"] == "90d"
+        return httpx.Response(
+            200,
+            json={
+                "data": [
+                    {
+                        "id": "umbreon",
+                        "name": "Umbreon VMAX",
+                        "game": "Pokemon",
+                        "set_name": "Evolving Skies",
+                        "number": "215",
+                        "variants": [
+                            {
+                                "id": "umbreon-nm",
+                                "condition": "Near Mint",
+                                "priceHistory": [
+                                    {"p": 100, "t": 1_700_000_000},
+                                    {"p": 110, "t": 1_700_086_400},
+                                ],
+                            }
+                        ],
+                    }
+                ]
+            },
+        )
+
+    adapter = JustTCGAdapter(
+        api_key="test-key",
+        usd_to_cad_rate=Decimal("1.35"),
+        transport=httpx.MockTransport(handle_request),
+    )
+
+    history = asyncio.run(adapter.fetch_raw_card_price_history(LOOKUP, "90d"))
+
+    assert history is not None
+    assert history.currency == "CAD"
+    assert history.points[0].market_price_per_unit == Decimal("135.00")
+    assert history.points[1].market_price_per_unit == Decimal("148.50")
+    assert history.growth_percent == Decimal("10.0")

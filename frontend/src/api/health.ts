@@ -1,5 +1,7 @@
+/** Backend availability check used by page-level connection states. */
 import type { HealthResponse } from "../types/health";
 
+/** Fetch the lightweight health payload or report an offline backend. */
 export async function getHealth(): Promise<HealthResponse> {
   const response = await fetch("/api/health");
 

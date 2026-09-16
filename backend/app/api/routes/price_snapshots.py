@@ -1,3 +1,5 @@
+"""Expose manual and JustTCG-backed market price snapshot operations."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,6 +27,8 @@ DatabaseSession = Annotated[Session, Depends(get_db)]
 def create_manual_price_snapshot(
     asset_id: int, data: PriceSnapshotCreateRequest, db: DatabaseSession
 ) -> PriceSnapshotResponse:
+    """Persist a user-supplied normalized market price for an asset."""
+
     try:
         return price_snapshot_service.create_manual_price_snapshot(
             db, asset_id, data
@@ -44,6 +48,8 @@ def create_manual_price_snapshot(
 async def create_justtcg_price_snapshot(
     asset_id: int, db: DatabaseSession
 ) -> PriceSnapshotResponse:
+    """Fetch an exact JustTCG raw-card quote and save it as a snapshot."""
+
     try:
         return await price_snapshot_service.create_justtcg_price_snapshot(
             db, asset_id

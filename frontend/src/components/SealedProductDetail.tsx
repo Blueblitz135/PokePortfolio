@@ -1,3 +1,4 @@
+/** Detailed sealed-product view with holdings, pricing, and image management. */
 import { AssetImageUpload } from "./AssetImageUpload";
 import { PurchaseLotForm } from "./PurchaseLotForm";
 import {
@@ -11,6 +12,7 @@ interface SealedProductDetailProps {
   onRefresh: (assetId: number) => Promise<void>;
 }
 
+/** Render an ISO purchase date without timezone shifting the calendar day. */
 function formatPurchaseDate(value: string): string {
   return new Date(`${value}T00:00:00`).toLocaleDateString("en-CA", {
     year: "numeric",
@@ -19,6 +21,7 @@ function formatPurchaseDate(value: string): string {
   });
 }
 
+/** Present the optional exclusivity flag as explicit Yes, No, or Unknown text. */
 function formatPokemonCenterStatus(value: boolean | null): string {
   if (value === null) {
     return "Not provided";
@@ -26,6 +29,7 @@ function formatPokemonCenterStatus(value: boolean | null): string {
   return value ? "Exclusive" : "No";
 }
 
+/** Render selected sealed metadata and nested lot, price, and image controls. */
 export function SealedProductDetail({
   asset,
   onRefresh,

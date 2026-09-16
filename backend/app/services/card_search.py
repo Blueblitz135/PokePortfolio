@@ -1,3 +1,5 @@
+"""Coordinate TCGdex searches and rank normalized results against user input."""
+
 from app.adapters.tcgdex import TCGdexAdapter, TCGdexError
 from app.config import settings
 from app.schemas.card_search import CardSearchResult
@@ -18,6 +20,8 @@ tcgdex_adapter = TCGdexAdapter(
 
 
 async def search_cards(query: str) -> list[CardSearchResult]:
+    """Try progressively shorter name queries and return the strongest matches."""
+
     normalized_query = query.strip()
     if not normalized_query:
         return []
@@ -33,6 +37,8 @@ async def search_cards(query: str) -> list[CardSearchResult]:
 
 
 def _name_search_queries(query: str) -> list[str]:
+    """Generate bounded fallback queries by removing trailing search terms."""
+
     words = query.split()
     minimum_word_count = max(1, len(words) - MAX_NAME_SEARCH_ATTEMPTS + 1)
     return [
@@ -44,6 +50,8 @@ def _name_search_queries(query: str) -> list[str]:
 def _best_matches(
     results: list[CardSearchResult], original_query: str
 ) -> list[CardSearchResult]:
+    """Prefer results containing every original term, otherwise sort by match count."""
+
     query_terms = original_query.casefold().split()
     scored_results = [
         (_match_score(result, query_terms), result) for result in results
@@ -61,6 +69,8 @@ def _best_matches(
 
 
 def _match_score(result: CardSearchResult, query_terms: list[str]) -> int:
+    """Count query terms found across a result's searchable identity fields."""
+
     structured_number = (
         f"{result.card_number}/{result.set_total}"
         if result.set_total is not None

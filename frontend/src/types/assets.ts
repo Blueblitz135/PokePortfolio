@@ -1,5 +1,7 @@
+/** Shared API contracts for assets, metadata, lots, images, and price snapshots. */
 import type { CurrencyCode } from "./currency";
 
+/** Mutually exclusive portfolio categories used by backend pricing rules. */
 export type AssetType = "raw_card" | "graded_card" | "sealed_product";
 
 export type ExternalSource = "manual" | "tcgdex" | "pokemon_tcg_api";
@@ -17,6 +19,7 @@ export type SealedProductType =
   | "collection_box"
   | "other";
 
+/** Labels used to render the canonical sealed-product enum in forms. */
 export const SEALED_PRODUCT_TYPE_OPTIONS: ReadonlyArray<{
   value: SealedProductType;
   label: string;
@@ -30,6 +33,7 @@ export const SEALED_PRODUCT_TYPE_OPTIONS: ReadonlyArray<{
   { value: "other", label: "Other" },
 ];
 
+/** Provider or manual identity shared by raw and graded cards. */
 export interface CardMetadata {
   id: number;
   external_source: ExternalSource;
@@ -67,6 +71,7 @@ export interface SealedProductMetadata {
   image_url: string | null;
 }
 
+/** One dated acquisition; asset quantity is derived from all of its lots. */
 export interface PurchaseLot {
   id: number;
   asset_id: number;
@@ -87,6 +92,7 @@ export interface AssetImage {
   created_at: string;
 }
 
+/** One normalized per-unit market observation for an asset. */
 export interface PriceSnapshot {
   id: number;
   asset_id: number;
@@ -97,6 +103,7 @@ export interface PriceSnapshot {
   observed_at: string;
 }
 
+/** Backend-calculated holdings and unrealized performance for one asset. */
 export interface AssetSummary {
   currency: CurrencyCode;
   total_quantity: number;
@@ -108,7 +115,9 @@ export interface AssetSummary {
   roi_percent: string | null;
 }
 
+/** Fully hydrated asset returned by collection and detail endpoints. */
 export interface AssetResponse {
+  market_pricing?: MarketPricing | null;
   id: number;
   asset_type: AssetType;
   display_name: string;
@@ -126,11 +135,35 @@ export interface AssetResponse {
   sealed_product_metadata: SealedProductMetadata | null;
 }
 
+export interface MarketPricing {
+  state: string;
+  detail: string;
+  source: string;
+  source_url: string;
+  fetched_at: string;
+  observed_at: string | null;
+  history_duration: string;
+  growth_percent: string | null;
+  tcgplayer?: {
+    state: string;
+    note: string;
+    observed_at: string | null;
+    variants: Array<{
+      printing: string;
+      market_price_cad: string | null;
+      low_price_cad: string | null;
+      median_price_cad: string | null;
+      high_price_cad: string | null;
+    }>;
+  } | null;
+}
+
 export type SealedProductAsset = AssetResponse & {
   asset_type: "sealed_product";
   sealed_product_metadata: SealedProductMetadata;
 };
 
+/** Payload for a new sealed asset and its required product metadata. */
 export interface SealedProductCreatePayload {
   asset_type: "sealed_product";
   display_name: string;
@@ -144,6 +177,7 @@ export interface SealedProductCreatePayload {
   };
 }
 
+/** Structured card identity used when creating raw or graded assets. */
 export interface CardMetadataCreatePayload {
   external_source: ExternalSource;
   external_id: string;
@@ -188,6 +222,7 @@ export type AssetCreatePayload =
   | CardAssetCreatePayload
   | SealedProductCreatePayload;
 
+/** Payload for recording a new acquisition under an existing asset. */
 export interface PurchaseLotCreatePayload {
   purchase_date: string;
   quantity: number;
@@ -202,6 +237,7 @@ export interface PurchaseLotUpdatePayload {
   currency?: CurrencyCode;
 }
 
+/** User-entered normalized market value saved as a manual snapshot. */
 export interface ManualPriceSnapshotCreatePayload {
   market_price_per_unit: string;
   currency: CurrencyCode;
@@ -209,6 +245,7 @@ export interface ManualPriceSnapshotCreatePayload {
   confidence: 0.5;
 }
 
+/** Narrow an API asset to one with guaranteed sealed-product metadata. */
 export function isSealedProductAsset(
   asset: AssetResponse,
 ): asset is SealedProductAsset {
@@ -218,6 +255,7 @@ export function isSealedProductAsset(
   );
 }
 
+/** Convert a sealed-product enum value to its user-facing label. */
 export function getSealedProductTypeLabel(type: SealedProductType): string {
   return (
     SEALED_PRODUCT_TYPE_OPTIONS.find((option) => option.value === type)?.label ??
@@ -225,6 +263,7 @@ export function getSealedProductTypeLabel(type: SealedProductType): string {
   );
 }
 
+/** Convert an asset category to its user-facing singular label. */
 export function getAssetTypeLabel(type: AssetType): string {
   const labels: Record<AssetType, string> = {
     raw_card: "Raw card",

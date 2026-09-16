@@ -1,3 +1,4 @@
+/** Present normalized TCGdex results and allow one card to be selected. */
 import type { CardSearchResult } from "../types/cardSearch";
 import {
   formatSearchCardNumber,
@@ -18,6 +19,7 @@ interface CardSearchResultsProps {
   onRetry: () => void;
 }
 
+/** Build a compact list of optional set, year, rarity, and number details. */
 function resultDetails(result: CardSearchResult): string[] {
   return [
     result.set_name,
@@ -27,6 +29,7 @@ function resultDetails(result: CardSearchResult): string[] {
   ].filter((value): value is string => Boolean(value));
 }
 
+/** Render initial, empty, error, loading, or selectable result states. */
 export function CardSearchResults({
   results,
   submittedQuery,

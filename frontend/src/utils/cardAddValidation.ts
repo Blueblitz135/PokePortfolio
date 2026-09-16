@@ -1,5 +1,7 @@
+/** Validate ownership-specific fields used when adding a searched card. */
 import type { CardAddDraft } from "../types/cardSearch";
 
+/** Accept grades greater than zero through ten with at most one decimal place. */
 function validateGrade(value: string): boolean {
   const normalizedValue = value.trim();
   if (!/^(?:\d{1,2}(?:\.\d)?|\.\d)$/.test(normalizedValue)) {
@@ -10,6 +12,7 @@ function validateGrade(value: string): boolean {
   return grade > 0 && grade <= 10;
 }
 
+/** Accept non-negative monetary input with at most two decimal places. */
 function validatePurchasePrice(value: string): boolean {
   const normalizedValue = value.trim();
   return /^(?:\d{1,10}(?:\.\d{1,2})?|\.\d{1,2})$/.test(
@@ -17,6 +20,7 @@ function validatePurchasePrice(value: string): boolean {
   );
 }
 
+/** Require a real ISO calendar date rather than relying on string shape alone. */
 function validatePurchaseDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
@@ -31,6 +35,7 @@ function validatePurchaseDate(value: string): boolean {
   );
 }
 
+/** Return field-level errors for the optional initial purchase lot. */
 export function validatePurchaseLotDraft(
   draft: CardAddDraft,
 ): string | null {
@@ -52,6 +57,7 @@ export function validatePurchaseLotDraft(
   return null;
 }
 
+/** Validate common fields plus the selected raw or graded ownership details. */
 export function validateCardAddDraft(
   draft: CardAddDraft,
 ): string | null {

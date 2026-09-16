@@ -1,3 +1,5 @@
+"""Expose update and delete operations for individual purchase lots."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -16,6 +18,8 @@ DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
 def _not_found(lot_id: int) -> HTTPException:
+    """Build the consistent 404 response used by purchase-lot routes."""
+
     return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Purchase lot {lot_id} was not found.",
@@ -26,6 +30,8 @@ def _not_found(lot_id: int) -> HTTPException:
 def update_purchase_lot(
     lot_id: int, data: PurchaseLotUpdateRequest, db: DatabaseSession
 ) -> PurchaseLotResponse:
+    """Partially update a lot's date, quantity, unit price, or currency."""
+
     try:
         return purchase_lot_service.update_purchase_lot(db, lot_id, data)
     except purchase_lot_service.PurchaseLotNotFoundError:
@@ -34,6 +40,8 @@ def update_purchase_lot(
 
 @router.delete("/{lot_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_purchase_lot(lot_id: int, db: DatabaseSession) -> Response:
+    """Delete one purchase lot and return an empty success response."""
+
     try:
         purchase_lot_service.delete_purchase_lot(db, lot_id)
     except purchase_lot_service.PurchaseLotNotFoundError:

@@ -1,3 +1,4 @@
+/** Present one asset's identity, media, lots, prices, and editing controls. */
 import { useEffect, useState } from "react";
 
 import type { AssetResponse } from "../types/assets";
@@ -11,6 +12,7 @@ import { AssetImageUpload } from "./AssetImageUpload";
 import { ManualPriceSnapshotForm } from "./ManualPriceSnapshotForm";
 import { PurchaseLotForm } from "./PurchaseLotForm";
 import { PurchaseLotManager } from "./PurchaseLotManager";
+import { MarketPriceEvidence } from "./MarketPriceEvidence";
 
 interface AssetDetailViewProps {
   asset: AssetResponse;
@@ -24,12 +26,14 @@ interface MetadataItem {
 
 const PLACEHOLDER_IMAGE_URL = "/static/placeholders/asset.svg";
 
+/** Convert missing metadata to a consistent user-facing placeholder. */
 function optionalValue(value: string | number | null | undefined): string {
   return value === null || value === undefined || value === ""
     ? "Not provided"
     : String(value);
 }
 
+/** Render the structured card number and optional set total. */
 function formatCardNumber(asset: AssetResponse): string {
   const metadata = asset.card_metadata;
   if (metadata === null) {
@@ -41,6 +45,7 @@ function formatCardNumber(asset: AssetResponse): string {
     : metadata.card_number;
 }
 
+/** Build label/value rows appropriate to the asset's category. */
 function getMetadata(asset: AssetResponse): {
   title: string;
   items: MetadataItem[];
@@ -111,6 +116,7 @@ function getMetadata(asset: AssetResponse): {
   };
 }
 
+/** Choose primary upload, provider metadata image, or bundled placeholder. */
 function getPreferredImageUrl(asset: AssetResponse): string {
   if (asset.primary_image_url !== PLACEHOLDER_IMAGE_URL) {
     return asset.primary_image_url;
@@ -123,6 +129,7 @@ function getPreferredImageUrl(asset: AssetResponse): string {
   );
 }
 
+/** Return a provider image only for card or sealed metadata that has one. */
 function getMetadataImageUrl(asset: AssetResponse): string | null {
   return (
     asset.card_metadata?.image_url ??
@@ -131,6 +138,7 @@ function getMetadataImageUrl(asset: AssetResponse): string | null {
   );
 }
 
+/** Map signed performance to positive, negative, or neutral styling. */
 function getPerformanceClass(value: string | null): string {
   if (value === null) {
     return "";
@@ -144,6 +152,7 @@ function getPerformanceClass(value: string | null): string {
   return amount > 0 ? "metric-value--positive" : "metric-value--negative";
 }
 
+/** Render the preferred image and fall back if the remote image cannot load. */
 function AssetHeroImage({ asset }: { asset: AssetResponse }) {
   const preferredImageUrl = getPreferredImageUrl(asset);
   const metadataImageUrl = getMetadataImageUrl(asset);
@@ -194,6 +203,7 @@ function AssetHeroImage({ asset }: { asset: AssetResponse }) {
   );
 }
 
+/** Compose type-specific metadata with purchase, price, and image management. */
 export function AssetDetailView({
   asset,
   onRefresh,
@@ -302,6 +312,7 @@ export function AssetDetailView({
         )}
       </section>
 
+      <MarketPriceEvidence asset={asset} detailed />
       <ManualPriceSnapshotForm
         key={`price-${asset.id}`}
         assetId={asset.id}
@@ -329,7 +340,7 @@ export function AssetDetailView({
         />
       </section>
 
-      <section
+      {/* <section
         className="detail-section asset-images-section"
         aria-labelledby="asset-images-title"
       >
@@ -339,7 +350,7 @@ export function AssetDetailView({
           assetId={asset.id}
           onSaved={onRefresh}
         />
-      </section>
+      </section> */}
     </article>
   );
 }

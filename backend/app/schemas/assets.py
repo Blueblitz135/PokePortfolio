@@ -1,3 +1,5 @@
+"""Validate asset create/update requests and serialize hydrated asset responses."""
+
 from datetime import datetime
 
 from pydantic import Field, model_validator
@@ -18,22 +20,32 @@ from app.schemas.price_snapshots import PriceSnapshotResponse
 
 
 class CardMetadataPayload(CardMetadataBase):
+    """Card metadata accepted while creating a raw or graded asset."""
+
     pass
 
 
 class RawCardDetailsPayload(RawCardDetailsBase):
+    """Raw-card condition accepted during asset creation."""
+
     pass
 
 
 class GradedCardDetailsPayload(GradedCardDetailsBase):
+    """Grading details accepted during asset creation."""
+
     pass
 
 
 class SealedProductMetadataPayload(SealedProductMetadataBase):
+    """Sealed-product metadata accepted during asset creation."""
+
     pass
 
 
 class AssetCreateRequest(AssetBase):
+    """Create payload whose nested metadata must match the selected asset type."""
+
     card_metadata: CardMetadataPayload | None = None
     raw_details: RawCardDetailsPayload | None = None
     graded_details: GradedCardDetailsPayload | None = None
@@ -41,6 +53,8 @@ class AssetCreateRequest(AssetBase):
 
     @model_validator(mode="after")
     def validate_metadata_for_asset_type(self) -> "AssetCreateRequest":
+        """Reject missing or mixed raw, graded, and sealed metadata."""
+
         if self.asset_type == AssetType.RAW_CARD:
             if self.card_metadata is None or self.raw_details is None:
                 raise ValueError("Raw cards require card_metadata and raw_details.")
@@ -67,11 +81,15 @@ class AssetCreateRequest(AssetBase):
 
 
 class AssetUpdateRequest(DomainSchema):
+    """Supported partial edits for an existing asset's user-facing fields."""
+
     display_name: str | None = Field(default=None, min_length=1, max_length=255)
     user_note: str | None = None
 
     @model_validator(mode="after")
     def validate_update_fields(self) -> "AssetUpdateRequest":
+        """Require at least one field and prevent a null display name."""
+
         if not self.model_fields_set:
             raise ValueError("At least one field must be provided.")
         if "display_name" in self.model_fields_set and self.display_name is None:
@@ -80,22 +98,35 @@ class AssetUpdateRequest(DomainSchema):
 
 
 class CardMetadataResponse(CardMetadataBase):
+    """Persisted card metadata including its identifier."""
+
     id: int
 
 
 class RawCardDetailsResponse(RawCardDetailsBase):
+    """Persisted raw-card details embedded in an asset response."""
+
     pass
 
 
 class GradedCardDetailsResponse(GradedCardDetailsBase):
+    """Persisted graded-card details embedded in an asset response."""
+
     pass
 
 
 class SealedProductMetadataResponse(SealedProductMetadataBase):
+    """Persisted sealed-product metadata including its identifier."""
+
     id: int
 
 
+from app.schemas.market_pricing import MarketPricing
+
+
 class AssetResponse(AssetBase):
+    """Complete asset representation including children and calculated fields."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -104,6 +135,7 @@ class AssetResponse(AssetBase):
     purchase_lots: list[PurchaseLotResponse] = Field(default_factory=list)
     latest_price_snapshot: PriceSnapshotResponse | None = None
     summary: AssetCalculationSummary
+    market_pricing: MarketPricing | None = None
     card_metadata: CardMetadataResponse | None = None
     raw_details: RawCardDetailsResponse | None = Field(
         default=None, validation_alias="raw_card_details"

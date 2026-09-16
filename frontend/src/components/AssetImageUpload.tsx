@@ -1,3 +1,4 @@
+/** Validate and upload a user image for an existing portfolio asset. */
 import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
 
 import { uploadAssetImage } from "../api/assets";
@@ -9,6 +10,7 @@ interface AssetImageUploadProps {
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
+/** Manage file selection, client checks, upload status, and success callbacks. */
 export function AssetImageUpload({
   assetId,
   onSaved,
@@ -19,12 +21,14 @@ export function AssetImageUpload({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  /** Store the selected file and clear feedback from an earlier attempt. */
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     setFile(event.target.files?.[0] ?? null);
     setError(null);
     setSuccess(null);
   }
 
+  /** Enforce the client size limit, upload the image, and reset on success. */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);

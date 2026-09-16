@@ -1,3 +1,4 @@
+/** Search input with submission, cancellation-aware loading, and validation states. */
 import type { FormEvent } from "react";
 
 interface CardSearchFormProps {
@@ -9,6 +10,7 @@ interface CardSearchFormProps {
   onSearch: () => void;
 }
 
+/** Collect a query and delegate searches to the page workflow. */
 export function CardSearchForm({
   query,
   validationError,
@@ -17,6 +19,7 @@ export function CardSearchForm({
   onQueryChange,
   onSearch,
 }: CardSearchFormProps) {
+  /** Reject blank queries and delegate a trimmed search term. */
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     onSearch();

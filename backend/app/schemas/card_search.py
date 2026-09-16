@@ -1,3 +1,5 @@
+"""Normalized card-search result returned independently of provider JSON."""
+
 from pydantic import Field
 
 from app.models.enums import ExternalSource
@@ -5,6 +7,8 @@ from app.schemas.domain import DomainSchema
 
 
 class CardSearchResult(DomainSchema):
+    """Card identity and image fields used by the add-to-collection workflow."""
+
     external_source: ExternalSource
     external_id: str = Field(min_length=1, max_length=255)
     name: str = Field(min_length=1, max_length=255)

@@ -1,3 +1,5 @@
+"""Create the FastAPI application and mount API and static-file routes."""
+
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -7,6 +9,8 @@ from app.api.router import api_router
 from app.config import settings
 
 
+# All feature routers are exposed beneath /api; uploaded and bundled images remain
+# separate static resources so the frontend can reference them directly.
 app = FastAPI(title=settings.app_name)
 app.include_router(api_router, prefix="/api")
 

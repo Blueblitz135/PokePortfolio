@@ -1,3 +1,4 @@
+/** Accessible collection-category filter using the canonical asset types. */
 import type { DefaultAssetTypeFilter } from "../preferences/portfolioPreferences";
 
 export type AssetFilter = DefaultAssetTypeFilter;
@@ -18,6 +19,7 @@ const FILTER_OPTIONS: ReadonlyArray<{
   { value: "sealed_product", label: "Sealed products" },
 ];
 
+/** Render filter buttons and report the newly selected category. */
 export function AssetTypeFilter({
   selectedFilter,
   counts,

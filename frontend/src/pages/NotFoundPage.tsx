@@ -1,5 +1,7 @@
+/** Friendly fallback for unknown client-side routes. */
 import { Link } from "react-router-dom";
 
+/** Offer navigation back to the main collection after a route miss. */
 export function NotFoundPage() {
   return (
     <div className="app-shell">

@@ -1,10 +1,12 @@
+/** Load one route-selected asset and render its detail, loading, or error state. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { getAsset } from "../api/assets";
+import { refreshAssetPrice } from "../api/assets";
 import { AssetDetailView } from "../components/AssetDetailView";
 import type { AssetResponse } from "../types/assets";
 
+/** Accept only positive integer route identifiers. */
 function parseAssetId(value: string | undefined): number | null {
   if (!value || !/^[1-9]\d*$/.test(value)) {
     return null;
@@ -14,6 +16,7 @@ function parseAssetId(value: string | undefined): number | null {
   return Number.isSafeInteger(parsedValue) ? parsedValue : null;
 }
 
+/** Coordinate asset fetching and refreshes requested by nested editors. */
 export function AssetDetailPage() {
   const { assetId: assetIdParam } = useParams();
   const assetId = parseAssetId(assetIdParam);
@@ -37,7 +40,7 @@ export function AssetDetailPage() {
     setAsset(null);
     setLoadError(null);
 
-    getAsset(assetId)
+    refreshAssetPrice(assetId)
       .then((loadedAsset) => {
         if (isCurrentRequest) {
           setAsset(loadedAsset);
@@ -65,7 +68,7 @@ export function AssetDetailPage() {
       throw new Error("The asset ID is invalid.");
     }
 
-    const refreshedAsset = await getAsset(assetId);
+    const refreshedAsset = await refreshAssetPrice(assetId);
     if (currentAssetIdRef.current === assetId) {
       setAsset(refreshedAsset);
       setLoadError(null);
@@ -118,7 +121,10 @@ export function AssetDetailPage() {
       )}
 
       {!isLoading && currentAsset && (
-        <AssetDetailView asset={currentAsset} onRefresh={refreshAsset} />
+        <>
+          <button className="secondary-button" onClick={() => setRequestVersion((value) => value + 1)}>Refresh market price</button>
+          <AssetDetailView asset={currentAsset} onRefresh={refreshAsset} />
+        </>
       )}
     </div>
   );

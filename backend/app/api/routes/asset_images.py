@@ -1,3 +1,5 @@
+"""Expose image upload and listing operations for a specific asset."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -14,6 +16,8 @@ DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
 def _asset_not_found(asset_id: int) -> HTTPException:
+    """Build the consistent 404 response used by image routes."""
+
     return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Asset {asset_id} was not found.",
@@ -27,6 +31,8 @@ async def upload_asset_image(
     db: DatabaseSession,
     is_primary: Annotated[bool, Form()] = False,
 ) -> AssetImageResponse:
+    """Validate, store, and register an uploaded asset image."""
+
     try:
         return await image_service.create_asset_image(db, asset_id, file, is_primary)
     except asset_service.AssetNotFoundError:
@@ -45,6 +51,8 @@ async def upload_asset_image(
 def list_asset_images(
     asset_id: int, db: DatabaseSession
 ) -> list[AssetImageResponse]:
+    """List an asset's images in creation order."""
+
     try:
         return image_service.list_asset_images(db, asset_id)
     except asset_service.AssetNotFoundError:

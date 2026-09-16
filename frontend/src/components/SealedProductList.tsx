@@ -1,3 +1,4 @@
+/** Selectable list of sealed-product holdings with explicit request states. */
 import {
   getSealedProductTypeLabel,
   type SealedProductAsset,
@@ -11,6 +12,7 @@ interface SealedProductListProps {
   onSelect: (assetId: number) => void;
 }
 
+/** Render loading, error, empty, or selectable sealed-product rows. */
 export function SealedProductList({
   assets,
   selectedAssetId,

@@ -1,3 +1,5 @@
+"""Calculate per-asset holdings and performance using normalized CAD values."""
+
 from decimal import Decimal
 
 from app.models import Asset, PriceSnapshot
@@ -6,6 +8,8 @@ from app.services.currency import DEFAULT_CURRENCY, require_normalized_currency
 
 
 def get_latest_price_snapshot(asset: Asset) -> PriceSnapshot | None:
+    """Select the newest snapshot, using its ID to break timestamp ties."""
+
     if not asset.price_snapshots:
         return None
 
@@ -16,12 +20,18 @@ def get_latest_price_snapshot(asset: Asset) -> PriceSnapshot | None:
 
 
 def _require_normalized_currency(currency: str | None) -> None:
+    """Guard calculations against accidentally mixing non-CAD stored values."""
+
     require_normalized_currency(
         currency if currency is not None else DEFAULT_CURRENCY
     )
 
 
-def calculate_asset_summary(asset: Asset) -> AssetCalculationSummary:
+def calculate_asset_summary(
+    asset: Asset, market_price_override: Decimal | None = None
+) -> AssetCalculationSummary:
+    """Derive quantity, cost basis, market value, profit/loss, and ROI for one asset."""
+
     total_quantity = sum(lot.quantity for lot in asset.purchase_lots)
     total_cost = Decimal("0")
     for lot in asset.purchase_lots:
@@ -33,7 +43,9 @@ def calculate_asset_summary(asset: Asset) -> AssetCalculationSummary:
     )
 
     latest_snapshot = get_latest_price_snapshot(asset)
-    if latest_snapshot is None:
+    if market_price_override is not None:
+        market_price_per_unit = market_price_override
+    elif latest_snapshot is None:
         market_price_per_unit = None
     else:
         _require_normalized_currency(latest_snapshot.currency)

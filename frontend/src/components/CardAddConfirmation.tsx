@@ -1,3 +1,4 @@
+/** Review and submit the selected card plus optional first purchase lot. */
 import { type FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -25,6 +26,7 @@ interface CardAddConfirmationProps {
   onAmbiguousRetryChange: (confirmed: boolean) => void;
 }
 
+/** Summarize condition or grading details for the confirmation view. */
 function ownershipDescription(draft: CardAddDraft): string {
   if (draft.assetType === "raw_card") {
     return `Raw card · ${draft.rawCondition}`;
@@ -33,6 +35,7 @@ function ownershipDescription(draft: CardAddDraft): string {
   return `Graded card · ${draft.gradingCompany} ${draft.grade}`;
 }
 
+/** Confirm the two-step save and expose targeted recovery actions on failure. */
 export function CardAddConfirmation({
   card,
   draft,
@@ -62,6 +65,7 @@ export function CardAddConfirmation({
     }
   }, [savePhase]);
 
+  /** Update fields shown when retrying a failed initial purchase lot. */
   function updateRecoveryDraft(
     field: "purchaseDate" | "quantity" | "purchasePricePerUnit",
     value: string,
@@ -70,6 +74,7 @@ export function CardAddConfirmation({
     setRecoveryError(null);
   }
 
+  /** Validate revised lot data before asking the parent to retry only that step. */
   function handleRecoverySubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const validationError = validatePurchaseLotDraft(recoveryDraft);

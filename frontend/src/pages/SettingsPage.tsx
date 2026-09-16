@@ -1,3 +1,4 @@
+/** Edit, validate, save, and reset local portfolio display preferences. */
 import { useEffect, useState, type FormEvent } from "react";
 
 import { usePortfolioPreferences } from "../hooks/usePortfolioPreferences";
@@ -22,6 +23,7 @@ const COLLECTION_FILTER_OPTIONS: ReadonlyArray<{
   { value: "sealed_product", label: "Sealed products" },
 ];
 
+/** Clone current preferences into an independently editable form draft. */
 function copyPreferences(
   preferences: PortfolioPreferences,
 ): PortfolioPreferences {
@@ -32,6 +34,7 @@ function copyPreferences(
   };
 }
 
+/** Render preference controls with unsaved-change and storage feedback. */
 export function SettingsPage() {
   const {
     preferences,
@@ -48,6 +51,7 @@ export function SettingsPage() {
     setDraft(copyPreferences(preferences));
   }, [preferences]);
 
+  /** Persist the sanitized draft and report whether browser storage succeeded. */
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -66,6 +70,7 @@ export function SettingsPage() {
     );
   }
 
+  /** Restore defaults in context and in the editable form draft. */
   function handleReset() {
     const wasPersisted = resetPreferences();
     setDraft(copyPreferences(DEFAULT_PORTFOLIO_PREFERENCES));

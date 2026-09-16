@@ -1,3 +1,4 @@
+/** Build backend payloads from card-search results and validated ownership drafts. */
 import type {
   CardAssetCreatePayload,
   PurchaseLotCreatePayload,
@@ -7,11 +8,13 @@ import type {
   CardSearchResult,
 } from "../types/cardSearch";
 
+/** Make values such as .5 acceptable to the backend decimal parser. */
 function normalizeLeadingDecimal(value: string): string {
   const trimmedValue = value.trim();
   return trimmedValue.startsWith(".") ? `0${trimmedValue}` : trimmedValue;
 }
 
+/** Combine provider metadata with raw or graded details for asset creation. */
 export function buildCardAssetPayload(
   card: CardSearchResult,
   draft: CardAddDraft,
@@ -56,6 +59,7 @@ export function buildCardAssetPayload(
   };
 }
 
+/** Build the optional first lot after the draft has passed validation. */
 export function buildFirstPurchaseLotPayload(
   draft: CardAddDraft,
 ): PurchaseLotCreatePayload {

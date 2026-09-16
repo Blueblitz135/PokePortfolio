@@ -1,3 +1,4 @@
+/** Null-safe currency and percentage formatters used throughout the UI. */
 import {
   DEFAULT_CURRENCY,
   type CurrencyCode,
@@ -17,6 +18,7 @@ const percentFormatter = new Intl.NumberFormat("en-CA", {
   maximumFractionDigits: 1,
 });
 
+/** Format an amount with the browser's locale-aware currency formatter. */
 export function formatCurrency(
   value: CurrencyValue,
   currency: CurrencyCode = DEFAULT_CURRENCY,
@@ -33,6 +35,7 @@ export function formatCurrency(
   return currencyFormatters[currency].format(amount);
 }
 
+/** Convert a normalized amount before applying display-currency formatting. */
 export function formatCurrencyForDisplay(
   value: CurrencyValue,
   sourceCurrency: CurrencyCode,
@@ -59,6 +62,7 @@ export function formatCurrencyForDisplay(
   }
 }
 
+/** Format a decimal percentage and preserve missing values as an em dash. */
 export function formatPercent(value: string | null): string {
   if (value === null) {
     return "—";
