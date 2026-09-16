@@ -1,9 +1,8 @@
 # PokéPortfolio
 
-<<<<<<< HEAD
 PokéPortfolio is a local, full-stack portfolio tracker for Pokémon cards and
 sealed products. It records what you own, each purchase lot, current market
-prices, and collection performance in CAD.
+prices, and collection performance.
 
 The application currently supports:
 
@@ -30,9 +29,6 @@ pricing.
 - **Frontend:** React 19, TypeScript, Vite, React Router
 - **Tests:** pytest and Vitest/Testing Library
 - **External services:** TCGdex, optional JustTCG, and optional OpenAI
-=======
-A Pokemon investment portfolio manager.
->>>>>>> 43e2cd44a5b051809710c11b897a529abd02dcae
 
 ## Prerequisites
 
