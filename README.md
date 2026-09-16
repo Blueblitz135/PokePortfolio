@@ -1,6 +1,6 @@
 # PokePortfolio
 
-Initial full-stack scaffold for a Pokemon portfolio investment app.
+A Pokemon investment portfolio manager.
 
 ## Prerequisites
 
