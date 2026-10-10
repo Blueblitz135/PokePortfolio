@@ -170,6 +170,46 @@ def test_create_sealed_product_rejects_unknown_product_type() -> None:
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize(
+    "card_metadata",
+    [
+        {
+            "external_source": "tcgdex",
+            "external_id": "A2b-043",
+            "name": "Lucario ex",
+            "set_name": "Shining Revelry",
+            "set_id": "A2b",
+            "catalog_series_id": "tcgp",
+            "card_number": "043",
+            "set_total": "72",
+        },
+        {
+            "external_source": "tcgdex",
+            "external_id": "A2b-043",
+            "name": "Lucario ex",
+            "set_name": "Shining Revelry",
+            "set_id": "A2b",
+            "card_number": "043",
+            "set_total": "72",
+            "image_url": "https://assets.tcgdex.net/en/tcgp/A2b/043/high.webp",
+        },
+    ],
+)
+def test_create_card_rejects_tcg_pocket_metadata(card_metadata: dict) -> None:
+    response = client.post(
+        "/api/assets",
+        json={
+            "asset_type": "raw_card",
+            "display_name": "Lucario ex",
+            "card_metadata": card_metadata,
+            "raw_details": {"condition": "NM"},
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Pokémon TCG Pocket cards are digital" in response.text
+
+
 def test_list_get_update_and_delete_asset() -> None:
     created = client.post(
         "/api/assets",

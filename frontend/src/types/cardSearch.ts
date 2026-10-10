@@ -13,10 +13,12 @@ export interface CardSearchResult {
   name: string;
   set_name: string;
   set_id: string;
+  series_id: string | null;
   year: number | null;
   card_number: string;
   set_total: string | null;
   rarity: string | null;
+  printings: string[];
   image_url: string | null;
 }
 
@@ -31,6 +33,7 @@ export interface CardAddDraft {
   rawCondition: RawCardCondition;
   gradingCompany: GradingCompany;
   grade: string;
+  printing: string;
   certificationNumber: string;
   userNote: string;
   purchaseDate: string;

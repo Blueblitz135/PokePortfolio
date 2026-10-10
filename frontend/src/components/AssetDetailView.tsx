@@ -8,7 +8,6 @@ import {
 } from "../types/assets";
 import { useCurrencyFormatter } from "../hooks/useCurrencyFormatter";
 import { formatPercent } from "../utils/formatters";
-import { AssetImageUpload } from "./AssetImageUpload";
 import { ManualPriceSnapshotForm } from "./ManualPriceSnapshotForm";
 import { PurchaseLotForm } from "./PurchaseLotForm";
 import { PurchaseLotManager } from "./PurchaseLotManager";

@@ -33,7 +33,16 @@ class TCGPlayerComparison(BaseModel):
 
 
 class MarketPricing(BaseModel):
-    state: Literal["available", "unavailable", "unmatched", "unsupported", "not_configured"]
+    state: Literal[
+        "available",
+        "unavailable",
+        "unmatched",
+        "unsupported",
+        "not_configured",
+        "no_market_data",
+        "rate_limited",
+        "quota_exceeded",
+    ]
     detail: str
     source: str = "Marketplace and verified store sales"
     source_url: str = "https://justtcg.com/features"

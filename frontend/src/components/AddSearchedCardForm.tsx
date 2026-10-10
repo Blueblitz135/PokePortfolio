@@ -41,12 +41,13 @@ function getToday(): string {
 }
 
 /** Build a fresh form draft with sensible raw-card and optional-lot defaults. */
-function createDefaultDraft(): CardAddDraft {
+function createDefaultDraft(card: CardSearchResult): CardAddDraft {
   return {
     assetType: "raw_card",
     rawCondition: "NM",
     gradingCompany: "PSA",
     grade: "10",
+    printing: card.printings[0] ?? "",
     certificationNumber: "",
     userNote: "",
     purchaseDate: getToday(),
@@ -70,7 +71,7 @@ export function AddSearchedCardForm({
   onCancel,
 }: AddSearchedCardFormProps) {
   const [draft, setDraft] = useState<CardAddDraft>(
-    () => initialDraft ?? createDefaultDraft(),
+    () => initialDraft ?? createDefaultDraft(card),
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -156,6 +157,21 @@ export function AddSearchedCardForm({
         </fieldset>
 
         <div className="form-grid">
+          {card.printings.length > 0 && (
+            <label className="field field--wide">
+              <span>Printing</span>
+              <select
+                value={draft.printing}
+                onChange={(event) => updateDraft("printing", event.target.value)}
+              >
+                {card.printings.map((printing) => (
+                  <option key={printing} value={printing}>
+                    {printing}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {draft.assetType === "raw_card" ? (
             <label className="field field--wide">
               <span>Condition</span>

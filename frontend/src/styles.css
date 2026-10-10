@@ -669,6 +669,32 @@ h3 {
   margin-top: 1.25rem;
 }
 
+.asset-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.asset-delete-confirmation {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #edc8c8;
+  border-radius: 0.75rem;
+  background: #fff8f8;
+}
+
+.asset-delete-confirmation h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.asset-delete-confirmation p {
+  margin: 0 0 1rem;
+  color: #6a4545;
+  line-height: 1.55;
+}
+
 .asset-detail-header {
   display: grid;
   grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr);

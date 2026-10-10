@@ -22,6 +22,7 @@ def test_search_cards_endpoint_returns_normalized_results(
                 name="Umbreon VMAX",
                 set_name="Evolving Skies",
                 set_id="swsh7",
+                series_id="swsh",
                 year=2021,
                 card_number="215",
                 set_total="203",
@@ -46,10 +47,12 @@ def test_search_cards_endpoint_returns_normalized_results(
             "name": "Umbreon VMAX",
             "set_name": "Evolving Skies",
             "set_id": "swsh7",
+            "series_id": "swsh",
             "year": 2021,
             "card_number": "215",
             "set_total": "203",
             "rarity": "Secret Rare",
+            "printings": [],
             "image_url": (
                 "https://assets.tcgdex.net/en/swsh/swsh7/215/high.webp"
             ),

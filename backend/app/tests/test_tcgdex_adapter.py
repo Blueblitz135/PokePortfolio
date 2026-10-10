@@ -49,6 +49,12 @@ def test_search_cards_normalizes_tcgdex_results() -> None:
                         "name": "Evolving Skies",
                         "cardCount": {"official": 203, "total": 237},
                     },
+                    "variants_detailed": [
+                        {
+                            "type": "holo",
+                            "thirdParty": {"tcgplayer": 246723},
+                        }
+                    ],
                     "pricing": {"cardmarket": {"avg": 999.99}},
                 },
             )
@@ -75,10 +81,12 @@ def test_search_cards_normalizes_tcgdex_results() -> None:
             "name": "Umbreon VMAX",
             "set_name": "Evolving Skies",
             "set_id": "swsh7",
+            "series_id": None,
             "year": 2021,
             "card_number": "215",
             "set_total": "203",
             "rarity": "Secret Rare",
+            "printings": ["Holofoil"],
             "image_url": (
                 "https://assets.tcgdex.net/en/swsh/swsh7/215/high.webp"
             ),
@@ -102,6 +110,32 @@ def test_search_cards_returns_empty_list_when_tcgdex_has_no_results() -> None:
     )
 
     assert _search(adapter, "missing card") == []
+
+
+def test_search_cards_excludes_tcg_pocket_cards() -> None:
+    def handle_request(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/v2/en/cards":
+            return httpx.Response(200, json=[{"id": "A2b-043"}])
+        if request.url.path == "/v2/en/cards/A2b-043":
+            return httpx.Response(200, json={
+                "id": "A2b-043", "localId": "043", "name": "Lucario ex",
+                "image": "https://assets.tcgdex.net/en/tcgp/A2b/043",
+                "set": {"id": "A2b", "name": "Shining Revelry",
+                        "cardCount": {"official": 72}},
+            })
+        if request.url.path == "/v2/en/sets/A2b":
+            return httpx.Response(200, json={
+                "id": "A2b", "releaseDate": "2025-03-27",
+                "serie": {"id": "tcgp", "name": "Pokémon TCG Pocket"},
+            })
+        raise AssertionError(f"Unexpected request: {request.url}")
+
+    adapter = TCGdexAdapter(
+        base_url="https://api.tcgdex.net/v2/en",
+        transport=httpx.MockTransport(handle_request),
+    )
+
+    assert _search(adapter, "Lucario ex") == []
 
 
 def test_search_cards_allows_missing_optional_metadata() -> None:

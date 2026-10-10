@@ -14,8 +14,10 @@ class CardSearchResult(DomainSchema):
     name: str = Field(min_length=1, max_length=255)
     set_name: str = Field(min_length=1, max_length=255)
     set_id: str = Field(min_length=1, max_length=100)
+    series_id: str | None = Field(default=None, max_length=100)
     year: int | None = None
     card_number: str = Field(min_length=1, max_length=50)
     set_total: str | None = Field(default=None, max_length=50)
     rarity: str | None = Field(default=None, max_length=100)
+    printings: list[str] = Field(default_factory=list)
     image_url: str | None = None

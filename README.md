@@ -113,7 +113,7 @@ features you intend to enable.
 | `JUSTTCG_USD_TO_CAD_RATE` | Positive USD-to-CAD rate used before storing JustTCG and TCGPlayer values | For external CAD prices |
 | `OPENAI_API_KEY` | Enables the portfolio assistant | For assistant |
 | `OPENAI_BASE_URL` | OpenAI-compatible Responses API base URL | No |
-| `OPENAI_MODEL` | Model used by the assistant; defaults to `gpt-5-mini` | No |
+| `OPENAI_MODEL` | Model used by the assistant; defaults to `gpt-6-luna` | No |
 | `OPENAI_TIMEOUT_SECONDS` | Assistant request timeout | No |
 | `PORTFOLIO_CHAT_HISTORY_DURATION` | Default external price-history window | No |
 
@@ -146,21 +146,24 @@ Then rerun `python -m app.db.create_tables` from `backend`.
   graded or condition-specific valuations.
 - Repeated observations from JustTCG are not stored twice.
 
-The collection page refreshes card prices after loading and also provides a
-manual refresh button. Sealed products retain their latest manually entered
-price.
+The collection page loads saved prices immediately and provides a manual
+refresh button. Provider results are cached briefly to avoid duplicate calls
+and free-tier rate-limit exhaustion. Sealed products retain their latest
+manually entered price.
 
 ## Main workflows
 
 - **Collection:** review portfolio totals, filter by asset type, refresh card
   prices, open asset details, and ask the portfolio assistant questions.
-- **Search:** find a card through TCGdex, choose raw or graded ownership details,
-  review the data, and create the asset with its first purchase lot.
+- **Search:** find a physical card through TCGdex, choose its printing and raw
+  or graded ownership details, review the data, and create the asset with its
+  first purchase lot. Digital Pokémon TCG Pocket cards are excluded.
 - **Sealed products:** create products manually, manage lots and prices, and
   upload a primary image.
 - **Asset details:** inspect metadata and calculations; add, edit, or delete
-  purchase lots; and record a market price. Card images currently come from
-  TCGdex; card uploads are available through the API but not exposed in the UI.
+  purchase lots; record a market price; or permanently delete the asset after
+  confirmation. Card images currently come from TCGdex; card uploads are
+  available through the API but not exposed in the UI.
 - **Settings:** choose the default collection filter. Preferences are stored in
   the current browser only. CAD is the only selectable display currency.
 

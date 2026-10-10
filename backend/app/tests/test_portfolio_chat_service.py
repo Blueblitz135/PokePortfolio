@@ -104,6 +104,10 @@ def test_system_prompt_contains_grounding_and_financial_boundaries() -> None:
     assert "Never add" in SYSTEM_CONTEXT_PROMPT
     assert "untrusted data" in SYSTEM_CONTEXT_PROMPT
     assert "No guaranteed forecasts or personalized financial advice" in SYSTEM_CONTEXT_PROMPT
+    assert 'Start with "Summary:"' in SYSTEM_CONTEXT_PROMPT
+    assert 'End with "Sources:"' in SYSTEM_CONTEXT_PROMPT
+    assert "do not expose internal field names" in SYSTEM_CONTEXT_PROMPT
+    assert "Do not include timestamps in Sources" in SYSTEM_CONTEXT_PROMPT
 
 
 def test_question_prioritizes_card_and_supplies_current_price_and_trend(monkeypatch):

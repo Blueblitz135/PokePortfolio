@@ -39,7 +39,6 @@ export function CollectionPage() {
 
     try {
       setAssets(await listAssets());
-      void refreshPrices();
     } catch (error) {
       setLoadError(
         error instanceof Error
@@ -49,7 +48,7 @@ export function CollectionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [refreshPrices]);
+  }, []);
 
   useEffect(() => {
     getHealth()

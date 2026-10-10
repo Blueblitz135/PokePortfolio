@@ -184,11 +184,12 @@ export interface CardMetadataCreatePayload {
   name: string;
   set_name: string;
   set_id: string;
+  catalog_series_id: string | null;
   year: number | null;
   card_number: string;
   set_total: string | null;
   rarity: string | null;
-  variant: null;
+  variant: string | null;
   image_url: string | null;
 }
 

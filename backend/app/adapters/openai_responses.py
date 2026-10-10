@@ -5,6 +5,9 @@ from typing import Any
 import httpx
 
 
+MAX_OUTPUT_TOKENS = 6_000
+
+
 class OpenAIResponsesError(Exception):
     """Raised when the OpenAI Responses API cannot generate an answer."""
 
@@ -64,9 +67,12 @@ class OpenAIResponsesAdapter:
                         "model": self.model,
                         "instructions": instructions,
                         "input": messages,
-                        "max_output_tokens": 900,
+                        # Reasoning tokens count against this limit and can consume a
+                        # small budget before the model emits any visible answer.
+                        "max_output_tokens": MAX_OUTPUT_TOKENS,
+                        "reasoning": {"effort": "low"},
                         "store": False,
-                        "text": {"verbosity": "medium"},
+                        "text": {"verbosity": "low"},
                     },
                 )
                 response.raise_for_status()
@@ -76,6 +82,10 @@ class OpenAIResponsesAdapter:
 
         output_text = _extract_output_text(payload)
         if not output_text:
+            if _incomplete_reason(payload) == "max_output_tokens":
+                raise OpenAIResponsesError(
+                    "OpenAI exhausted the output token budget before returning text."
+                )
             raise OpenAIResponsesError("OpenAI returned an empty response.")
         return output_text
 
@@ -119,3 +129,15 @@ def _extract_output_text(payload: Any) -> str | None:
             if isinstance(text, str) and text.strip():
                 chunks.append(text.strip())
     return "\n".join(chunks) or None
+
+
+def _incomplete_reason(payload: Any) -> str | None:
+    """Return the provider reason when a Responses API result is incomplete."""
+
+    if not isinstance(payload, dict) or payload.get("status") != "incomplete":
+        return None
+    details = payload.get("incomplete_details")
+    if not isinstance(details, dict):
+        return None
+    reason = details.get("reason")
+    return reason if isinstance(reason, str) else None

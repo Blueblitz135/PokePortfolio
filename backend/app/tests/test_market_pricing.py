@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app.adapters.justtcg import JustTCGAdapter, JustTCGError, RawCardPriceHistory, RawCardPriceLookup
-from app.adapters.tcgdex import TCGdexAdapter
+from app.adapters.tcgdex import TCGdexAdapter, TCGdexCardReference
 from app.db.base import Base
 from app.models import Asset, AssetType, CardMetadata, RawCardDetails, RawCardCondition, PurchaseLot, PriceSnapshot
 from app.schemas.market_pricing import TCGPlayerComparison
@@ -104,6 +104,9 @@ def test_both_sources_are_requested_even_when_market_fails(db, monkeypatch):
     asset = add_card(db, "Unavailable")
     called = []
     class Reference:
+        async def fetch_card_reference(self, metadata):
+            return None
+
         async def fetch_tcgplayer_prices(self, metadata, rate):
             called.append(metadata.name)
             return TCGPlayerComparison(state="available")
@@ -114,6 +117,52 @@ def test_both_sources_are_requested_even_when_market_fails(db, monkeypatch):
     assert called == ["Unavailable"]
     assert result.market_pricing.tcgplayer.state == "available"
     assert result.summary.market_price_per_unit is None
+
+
+def test_tcgdex_reference_enriches_pricing_lookup(db, monkeypatch):
+    asset = add_card(db)
+    captured = []
+
+    class PricingById(Pricing):
+        async def fetch_raw_card_price_history(self, lookup, duration):
+            captured.append(lookup)
+            return await super().fetch_raw_card_price_history(lookup, duration)
+
+    class Reference:
+        async def fetch_card_reference(self, metadata):
+            return TCGdexCardReference(
+                tcgplayer_id="246723",
+                printings=("Holofoil",),
+                is_tcg_pocket=False,
+            )
+
+    monkeypatch.setattr(service, "justtcg_adapter", PricingById())
+    monkeypatch.setattr(service, "tcgdex_adapter", Reference())
+
+    asyncio.run(service.refresh_assets(db, [asset]))
+
+    assert captured[0].tcgplayer_id == "246723"
+    assert captured[0].printing == "Holofoil"
+
+
+def test_tcg_pocket_card_is_reported_as_unsupported(db, monkeypatch):
+    asset = add_card(db, "Lucario ex")
+    asset.card_metadata.external_id = "A2b-043"
+
+    class Reference:
+        async def fetch_card_reference(self, metadata):
+            return TCGdexCardReference(
+                tcgplayer_id=None,
+                printings=(),
+                is_tcg_pocket=True,
+            )
+
+    monkeypatch.setattr(service, "tcgdex_adapter", Reference())
+
+    result = asyncio.run(service.refresh_assets(db, [asset]))[0]
+
+    assert result.market_pricing.state == "unsupported"
+    assert "digital" in result.market_pricing.detail
 
 
 def test_graded_identity_is_resolved_before_v2_and_exact_grade_selected():

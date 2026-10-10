@@ -25,11 +25,12 @@ export function buildCardAssetPayload(
     name: card.name,
     set_name: card.set_name,
     set_id: card.set_id,
+    catalog_series_id: card.series_id,
     year: card.year,
     card_number: card.card_number,
     set_total: card.set_total,
     rarity: card.rarity,
-    variant: null,
+    variant: draft.printing || null,
     image_url: card.image_url,
   };
   const userNote = draft.userNote.trim() || null;

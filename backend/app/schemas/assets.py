@@ -1,6 +1,7 @@
 """Validate asset create/update requests and serialize hydrated asset responses."""
 
 from datetime import datetime
+import re
 
 from pydantic import Field, model_validator
 
@@ -22,7 +23,7 @@ from app.schemas.price_snapshots import PriceSnapshotResponse
 class CardMetadataPayload(CardMetadataBase):
     """Card metadata accepted while creating a raw or graded asset."""
 
-    pass
+    catalog_series_id: str | None = Field(default=None, max_length=100)
 
 
 class RawCardDetailsPayload(RawCardDetailsBase):
@@ -55,6 +56,14 @@ class AssetCreateRequest(AssetBase):
     def validate_metadata_for_asset_type(self) -> "AssetCreateRequest":
         """Reject missing or mixed raw, graded, and sealed metadata."""
 
+        if self.card_metadata is not None and _is_tcg_pocket_metadata(
+            self.card_metadata
+        ):
+            raise ValueError(
+                "Pokémon TCG Pocket cards are digital and cannot be added "
+                "to this physical-card portfolio."
+            )
+
         if self.asset_type == AssetType.RAW_CARD:
             if self.card_metadata is None or self.raw_details is None:
                 raise ValueError("Raw cards require card_metadata and raw_details.")
@@ -78,6 +87,20 @@ class AssetCreateRequest(AssetBase):
                 raise ValueError("Sealed products cannot include card metadata.")
 
         return self
+
+
+def _is_tcg_pocket_metadata(metadata: CardMetadataPayload) -> bool:
+    """Recognize Pocket metadata even if an older client omits the series ID."""
+
+    if (metadata.catalog_series_id or "").casefold() == "tcgp":
+        return True
+    if metadata.image_url and "/tcgp/" in metadata.image_url.casefold():
+        return True
+    set_id = metadata.set_id or ""
+    return (
+        metadata.external_source.value == "tcgdex"
+        and bool(re.fullmatch(r"(?:PROMO-A|[A-Z]\d+[a-z]?)", set_id))
+    )
 
 
 class AssetUpdateRequest(DomainSchema):

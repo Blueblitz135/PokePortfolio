@@ -40,7 +40,7 @@ describe("PortfolioChatbot", () => {
       { role: "user", content: "How is my portfolio doing?" },
     ]);
 
-    fireEvent.click(screen.getByText("Data source coverage"));
+    fireEvent.click(screen.getByText("Where this information came from"));
     expect(screen.getByText(/JustTCG: available/)).toBeTruthy();
   });
 

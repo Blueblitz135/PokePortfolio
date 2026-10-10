@@ -1,8 +1,8 @@
 /** Load one route-selected asset and render its detail, loading, or error state. */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { refreshAssetPrice } from "../api/assets";
+import { deleteAsset, refreshAssetPrice } from "../api/assets";
 import { AssetDetailView } from "../components/AssetDetailView";
 import type { AssetResponse } from "../types/assets";
 
@@ -18,6 +18,7 @@ function parseAssetId(value: string | undefined): number | null {
 
 /** Coordinate asset fetching and refreshes requested by nested editors. */
 export function AssetDetailPage() {
+  const navigate = useNavigate();
   const { assetId: assetIdParam } = useParams();
   const assetId = parseAssetId(assetIdParam);
   const [asset, setAsset] = useState<AssetResponse | null>(null);
@@ -26,6 +27,9 @@ export function AssetDetailPage() {
     message: string;
   } | null>(null);
   const [requestVersion, setRequestVersion] = useState(0);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const currentAssetIdRef = useRef(assetId);
   currentAssetIdRef.current = assetId;
 
@@ -86,6 +90,26 @@ export function AssetDetailPage() {
   const isLoading =
     assetId !== null && currentAsset === null && currentError === null;
 
+  async function handleDeleteAsset() {
+    if (currentAsset === null || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAsset(currentAsset.id);
+      navigate("/collection", { replace: true });
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : "The asset could not be deleted.",
+      );
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <div className="app-shell asset-detail-page">
       <Link className="back-link" to="/collection">
@@ -122,7 +146,52 @@ export function AssetDetailPage() {
 
       {!isLoading && currentAsset && (
         <>
-          <button className="secondary-button" onClick={() => setRequestVersion((value) => value + 1)}>Refresh market price</button>
+          <div className="asset-detail-actions">
+            <button className="secondary-button" onClick={() => setRequestVersion((value) => value + 1)}>Refresh market price</button>
+            <button
+              className="danger-button"
+              type="button"
+              onClick={() => {
+                setIsConfirmingDelete(true);
+                setDeleteError(null);
+              }}
+            >
+              Delete asset
+            </button>
+          </div>
+          {isConfirmingDelete && (
+            <section className="asset-delete-confirmation" role="alert">
+              <h2>Delete {currentAsset.display_name}?</h2>
+              <p>
+                This permanently removes the asset, its purchase lots, images,
+                and saved price history from this collection.
+              </p>
+              {deleteError && (
+                <p className="form-message form-message--error">{deleteError}</p>
+              )}
+              <div className="asset-detail-actions">
+                <button
+                  className="danger-button"
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => void handleDeleteAsset()}
+                >
+                  {isDeleting ? "Deleting asset..." : "Yes, delete asset"}
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => {
+                    setIsConfirmingDelete(false);
+                    setDeleteError(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </section>
+          )}
           <AssetDetailView asset={currentAsset} onRefresh={refreshAsset} />
         </>
       )}

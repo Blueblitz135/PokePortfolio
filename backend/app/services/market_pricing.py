@@ -1,11 +1,17 @@
 """Refresh every card independently and persist normalized, attributed quotes."""
 
 import asyncio
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.adapters.justtcg import JustTCGError, RawCardPriceLookup
+from app.adapters.justtcg import (
+    JustTCGError,
+    JustTCGQuotaError,
+    JustTCGRateLimitError,
+    RawCardPriceLookup,
+)
 from app.adapters.tcgdex import TCGdexAdapter, TCGdexError
 from app.config import settings
 from app.models import Asset, AssetType, PriceSnapshot, PriceSource
@@ -44,6 +50,27 @@ async def fetch_pricing(asset: Asset, duration: str, comparison: bool) -> Market
     rate = settings.justtcg_usd_to_cad_rate
     result.usd_to_cad_rate = rate
 
+    if asset.card_metadata.external_source.value == "tcgdex":
+        try:
+            reference = await tcgdex_adapter.fetch_card_reference(asset.card_metadata)
+        except TCGdexError:
+            reference = None
+        if reference and reference.is_tcg_pocket:
+            result.state = "unsupported"
+            result.detail = "Pokémon TCG Pocket cards are digital and are not covered by physical-card pricing."
+            return result
+        if reference:
+            inferred_printing = (
+                reference.printings[0]
+                if lookup.printing is None and len(reference.printings) == 1
+                else lookup.printing
+            )
+            lookup = replace(
+                lookup,
+                tcgplayer_id=reference.tcgplayer_id,
+                printing=inferred_printing,
+            )
+
     async def market():
         if not justtcg_adapter.is_configured:
             result.state = "not_configured"
@@ -64,9 +91,17 @@ async def fetch_pricing(asset: Asset, duration: str, comparison: bool) -> Market
                 result.state = "available"
                 result.detail = "Latest available market estimate, matched to your card condition or grade."
             else:
-                result.detail = "No current quote is available; any returned history is shown separately."
+                result.state = "no_market_data"
+                result.detail = "The card and condition or grade matched, but the provider has no current market observations. Saved prices are shown."
+        except JustTCGRateLimitError:
+            result.state = "rate_limited"
+            result.detail = "Market pricing is temporarily rate limited. Try again after one minute; saved prices are shown."
+        except JustTCGQuotaError:
+            result.state = "quota_exceeded"
+            result.detail = "The market-data daily or monthly quota is exhausted; saved prices are shown."
         except JustTCGError:
-            pass
+            result.state = "unavailable"
+            result.detail = "The market-data provider could not complete this request; saved prices are shown."
 
     async def tcgplayer():
         if not comparison:

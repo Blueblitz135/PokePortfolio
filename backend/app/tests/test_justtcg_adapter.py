@@ -9,6 +9,8 @@ from app.adapters.justtcg import (
     JustTCGAdapter,
     JustTCGConfigurationError,
     JustTCGError,
+    JustTCGQuotaError,
+    JustTCGRateLimitError,
     RawCardPriceLookup,
 )
 from app.models import RawCardCondition
@@ -133,6 +135,86 @@ def test_adapter_requires_an_api_key_and_conversion_rate() -> None:
 
     with pytest.raises(JustTCGConfigurationError):
         _fetch(adapter)
+
+
+@pytest.mark.parametrize(
+    ("code", "error_type"),
+    [
+        ("RATE_LIMIT_EXCEEDED", JustTCGRateLimitError),
+        ("DAILY_LIMIT_EXCEEDED", JustTCGQuotaError),
+        ("REQUEST_LIMIT_EXCEEDED", JustTCGQuotaError),
+    ],
+)
+def test_adapter_classifies_provider_limits(code, error_type) -> None:
+    adapter = JustTCGAdapter(
+        api_key="test-key",
+        usd_to_cad_rate=Decimal("1.35"),
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                429, json={"error": "limit reached", "code": code}
+            )
+        ),
+    )
+
+    with pytest.raises(error_type):
+        _fetch(adapter)
+
+
+def test_adapter_uses_stable_tcgplayer_id_instead_of_catalog_names() -> None:
+    def handle_request(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v2/cards"
+        assert request.url.params["tcgplayer_id"] == "502558"
+        return httpx.Response(200, json={"data": [{
+            "id": "card-uuid",
+            "name": "Charizard ex - 006/165",
+            "game": {"id": "pokemon"},
+            "set": {"name": "SV: Scarlet & Violet 151"},
+            "number": "006/165",
+            "external_ids": {"tcgplayer": "502558"},
+            "variants": [{
+                "id": "psa-10", "type": "graded", "printing": "Holofoil",
+                "grading": {"company": "PSA", "grade": 10},
+                "markets": [{
+                    "region": "NA", "currency": "USD", "price": 100,
+                    "updated_at": 1_700_000_000, "price_history": [],
+                }],
+            }],
+        }]})
+
+    adapter = JustTCGAdapter(
+        api_key="test-key",
+        usd_to_cad_rate=Decimal("1.35"),
+        transport=httpx.MockTransport(handle_request),
+    )
+    lookup = RawCardPriceLookup(
+        name="Charizard ex", set_name="151", card_number="006",
+        set_total="165", condition=None, printing="Holofoil",
+        grading_company="PSA", grade="10", tcgplayer_id="502558",
+    )
+
+    result = asyncio.run(adapter.fetch_raw_card_price_history(lookup))
+
+    assert result is not None
+    assert result.current_price_cad == Decimal("135.00")
+
+
+def test_price_history_is_cached_for_repeated_refreshes() -> None:
+    requests = 0
+
+    def handle_request(request: httpx.Request) -> httpx.Response:
+        nonlocal requests
+        requests += 1
+        return httpx.Response(200, json={"data": []})
+
+    adapter = JustTCGAdapter(
+        api_key="test-key",
+        usd_to_cad_rate=Decimal("1.35"),
+        transport=httpx.MockTransport(handle_request),
+    )
+
+    assert asyncio.run(adapter.fetch_raw_card_price_history(LOOKUP)) is None
+    assert asyncio.run(adapter.fetch_raw_card_price_history(LOOKUP)) is None
+    assert requests == 1
 
 
 def test_adapter_returns_price_history_in_cad() -> None:

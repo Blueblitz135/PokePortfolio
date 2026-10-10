@@ -31,6 +31,11 @@ export function getAsset(assetId: number): Promise<AssetResponse> {
   return requestJson<AssetResponse>(`/api/assets/${assetId}`);
 }
 
+/** Permanently remove an asset and its dependent portfolio records. */
+export function deleteAsset(assetId: number): Promise<void> {
+  return requestNoContent(`/api/assets/${assetId}`, { method: "DELETE" });
+}
+
 /** Create a raw, graded, or sealed asset using its discriminated payload. */
 export function createAsset(
   payload: AssetCreatePayload,

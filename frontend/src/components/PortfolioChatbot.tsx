@@ -131,7 +131,7 @@ export function PortfolioChatbot({ onPricingUpdated }: { onPricingUpdated?: (ass
 
       {providers.length > 0 && (
         <details className="portfolio-chat-sources">
-          <summary>Data source coverage</summary>
+          <summary>Where this information came from</summary>
           <ul>
             {providers.map((provider) => (
               <li key={provider.provider}>

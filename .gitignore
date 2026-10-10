@@ -53,3 +53,7 @@ docker-compose.override.yml
 
 # Misc
 .cache/
+.agents
+AGENTS.md
+CODING_RULES.md
+docs/

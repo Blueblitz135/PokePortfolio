@@ -67,7 +67,9 @@ def create_asset(db: Session, data: AssetCreateRequest) -> Asset:
     )
 
     if data.card_metadata is not None:
-        asset.card_metadata = CardMetadata(**data.card_metadata.model_dump())
+        asset.card_metadata = CardMetadata(
+            **data.card_metadata.model_dump(exclude={"catalog_series_id"})
+        )
     if data.raw_details is not None:
         asset.raw_card_details = RawCardDetails(**data.raw_details.model_dump())
     if data.graded_details is not None:

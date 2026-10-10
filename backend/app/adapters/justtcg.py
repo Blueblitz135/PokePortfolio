@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from time import monotonic
 from typing import Any
 
 import httpx
@@ -27,6 +28,14 @@ class JustTCGConfigurationError(JustTCGError):
     """Raised when the optional JustTCG integration is not configured."""
 
 
+class JustTCGRateLimitError(JustTCGError):
+    """Raised when the provider's short-term request limit is exhausted."""
+
+
+class JustTCGQuotaError(JustTCGError):
+    """Raised when the provider's daily or monthly allowance is exhausted."""
+
+
 @dataclass(frozen=True)
 class RawCardPriceLookup:
     """Local card identity and condition required for an exact provider match."""
@@ -39,6 +48,7 @@ class RawCardPriceLookup:
     printing: str | None = None
     grading_company: str | None = None
     grade: str | None = None
+    tcgplayer_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -89,6 +99,7 @@ class JustTCGAdapter:
         base_url: str = "https://api.justtcg.com/v1",
         timeout_seconds: float = 10.0,
         transport: httpx.AsyncBaseTransport | None = None,
+        cache_ttl_seconds: float = 300.0,
     ) -> None:
         """Configure credentials, explicit FX normalization, and HTTP behavior."""
 
@@ -97,6 +108,11 @@ class JustTCGAdapter:
         self.base_url = f"{base_url.rstrip('/')}/"
         self.timeout_seconds = timeout_seconds
         self.transport = transport
+        self.cache_ttl_seconds = cache_ttl_seconds
+        self._history_cache: dict[
+            tuple[RawCardPriceLookup, str],
+            tuple[float, RawCardPriceHistory | None],
+        ] = {}
 
     @property
     def is_configured(self) -> bool:
@@ -158,11 +174,17 @@ class JustTCGAdapter:
         if duration not in {"7d", "30d", "90d", "180d", "1y"}:
             raise JustTCGError("JustTCG price history duration is invalid.")
 
+        cache_key = (lookup, duration)
+        cached = self._history_cache.get(cache_key)
+        if cached and monotonic() - cached[0] < self.cache_ttl_seconds:
+            return cached[1]
+
         payload = await self._fetch_card_payload(
             lookup, extra_params={"priceHistoryDuration": duration}
         )
         card, variant = _find_exact_variant(payload, lookup)
         if card is None or variant is None:
+            self._history_cache[cache_key] = (monotonic(), None)
             return None
 
         raw_points = variant.get("priceHistory", [])
@@ -202,7 +224,7 @@ class JustTCGAdapter:
             current_price_cad = (current_price * self.usd_to_cad_rate).quantize(
                 USD_TO_CAD_QUANTUM, rounding=ROUND_HALF_UP
             )
-        return RawCardPriceHistory(
+        result = RawCardPriceHistory(
             currency="CAD",
             duration=duration,
             points=tuple(points),
@@ -213,6 +235,8 @@ class JustTCGAdapter:
             provider_card_id=_text(card.get("id")),
             provider_variant_id=_text(variant.get("id")),
         )
+        self._history_cache[cache_key] = (monotonic(), result)
+        return result
 
     async def _fetch_card_payload(
         self,
@@ -221,12 +245,15 @@ class JustTCGAdapter:
     ) -> Any:
         """Build provider search parameters and retrieve the card payload."""
 
-        params: dict[str, str | int] = {
-            "q": lookup.name,
-            "game": "pokemon",
-            "number": lookup.card_number,
-            "limit": 20,
-        }
+        params: dict[str, str | int] = {"limit": 20}
+        if lookup.tcgplayer_id:
+            params["tcgplayerId"] = lookup.tcgplayer_id
+        else:
+            params.update({
+                "q": lookup.name,
+                "game": "pokemon",
+                "number": lookup.card_number,
+            })
         if lookup.condition:
             params["condition"] = "D" if lookup.condition == RawCardCondition.DMG else lookup.condition.value
         if extra_params:
@@ -235,6 +262,8 @@ class JustTCGAdapter:
         if lookup.grading_company:
             path = "../v2/cards"
             params.pop("condition", None)
+            if lookup.tcgplayer_id:
+                params["tcgplayer_id"] = params.pop("tcgplayerId")
             duration = params.pop("priceHistoryDuration", "90d")
             params.update({
                 "graded": "only", "grading_company": lookup.grading_company,
@@ -247,7 +276,7 @@ class JustTCGAdapter:
             timeout=self.timeout_seconds,
             transport=self.transport,
         ) as client:
-            if lookup.grading_company:
+            if lookup.grading_company and not lookup.tcgplayer_id:
                 # Resolve identity on stable v1 first: v2 search filters differ.
                 candidates = await self._request_json(client, "cards", params={
                     "q": lookup.name, "game": "pokemon", "number": lookup.card_number, "limit": 20,
@@ -287,8 +316,18 @@ class JustTCGAdapter:
             response = await client.get(
                 path, params=params, headers={"x-api-key": self.api_key or ""}
             )
+            payload = response.json()
+            if response.is_success:
+                return payload
+            code = payload.get("code") if isinstance(payload, dict) else None
+            if code == "RATE_LIMIT_EXCEEDED":
+                raise JustTCGRateLimitError("JustTCG rate limit exceeded.")
+            if code in {"DAILY_LIMIT_EXCEEDED", "REQUEST_LIMIT_EXCEEDED"}:
+                raise JustTCGQuotaError("JustTCG request quota exceeded.")
             response.raise_for_status()
-            return response.json()
+            raise JustTCGError("JustTCG request failed.")
+        except (JustTCGRateLimitError, JustTCGQuotaError):
+            raise
         except (httpx.HTTPError, ValueError) as exc:
             raise JustTCGError("JustTCG request failed.") from exc
 
@@ -334,8 +373,22 @@ def _find_exact_variant(
 def _matches_card(card: dict[str, Any], lookup: RawCardPriceLookup) -> bool:
     """Compare the provider card's normalized identity to the local lookup."""
 
+    game = card.get("game")
+    game_id = game.get("id") if isinstance(game, dict) else game
+    if lookup.tcgplayer_id:
+        external_ids = card.get("external_ids")
+        provider_id = card.get("tcgplayerId")
+        if isinstance(external_ids, dict):
+            provider_id = external_ids.get("tcgplayer")
+        return (
+            _normalized_text(game_id) == "pokemon"
+            and _text(provider_id) == lookup.tcgplayer_id
+            and card_number_matches(
+                card.get("number"), lookup.card_number, lookup.set_total
+            )
+        )
     return (
-        _normalized_text(card.get("game")) == "pokemon"
+        _normalized_text(game_id) == "pokemon"
         and card_name_matches(card.get("name"), lookup.name)
         and set_name_matches(card.get("set_name"), lookup.set_name)
         and card_number_matches(card.get("number"), lookup.card_number, lookup.set_total)

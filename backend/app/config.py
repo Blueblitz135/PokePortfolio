@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     poketrace_usd_to_cad_rate: Decimal | None = None
     openai_api_key: str | None = None
     openai_base_url: str = "https://api.openai.com/v1"
-    openai_model: str = "gpt-5-mini"
+    openai_model: str = "gpt-6-luna"
     openai_timeout_seconds: float = 30.0
     portfolio_chat_external_asset_limit: int = 20
     portfolio_chat_history_duration: str = "90d"
